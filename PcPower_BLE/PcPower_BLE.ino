@@ -10,11 +10,14 @@
 
 #include "src/app.h"
 #include "src/ble_scan.h"
+#include "src/console.h"
 #include "src/device_store.h"
+#include "src/net.h"
 #include "src/pc_sense.h"
 #include "src/power_out.h"
 #include "src/settings_store.h"
 #include "src/status_led.h"
+#include "src/web_server.h"
 
 // Used before settings are loaded from NVS. Must match the defaults in settings_model.cpp.
 static constexpr uint8_t kBootPinOut = 5;
@@ -50,12 +53,19 @@ void setup() {
   delay(500);  // the only delay in the firmware: hold the boot self-test light long enough to see
 
   BleScan::begin(g_settings);
+  Net::begin(g_settings);
+  Web::begin();
+  Console::begin();
 }
 
 // Picks the LED pattern from what the board is actually doing.
 static void updateStatusLed() {
   if (PowerOut::active()) {
     StatusLed::overlay(core::LedMode::PulseActive, 50);
+  } else if (Web::otaInProgress() || Net::mode() == Net::Mode::Connecting) {
+    StatusLed::setMode(core::LedMode::WifiConnecting);
+  } else if (Net::mode() == Net::Mode::Portal) {
+    StatusLed::setMode(core::LedMode::Portal);
   } else if (BleScan::learning()) {
     StatusLed::setMode(core::LedMode::Learning);
     StatusLed::tick();
@@ -69,13 +79,19 @@ static void updateStatusLed() {
 }
 
 void loop() {
-  // Nothing can trigger while the PC runs, so give the antenna back to WiFi.
-  const bool pc_on = PcSense::state() == core::PcState::On;
-  BleScan::setPaused(pc_on && g_settings.flag(core::S_PAUSE_WHEN_ON));
+  Net::tick();
+  Web::tick();
+  Console::tick();
 
-  BleScan::tick();
+  if (!Web::otaInProgress()) {
+    // Nothing can trigger while the PC runs, so give the antenna back to WiFi.
+    const bool pc_on = PcSense::state() == core::PcState::On;
+    BleScan::setPaused(pc_on && g_settings.flag(core::S_PAUSE_WHEN_ON));
+    BleScan::tick();
+  }
+
   updateStatusLed();
   appLogPump();
 
-  delay(5);  // yield to the radio and the sense task
+  delay(2);  // yield to the radio, the sense task and the web server
 }

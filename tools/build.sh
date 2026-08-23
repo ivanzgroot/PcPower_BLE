@@ -53,7 +53,7 @@ fi
 
 echo "==> compiling"
 mkdir -p build
-"$ACLI" compile --fqbn "$FQBN" --output-dir build --warnings default PcPower_BLE
+"$ACLI" compile --fqbn "$FQBN" --output-dir build --warnings default --jobs "${BUILD_JOBS:-2}" PcPower_BLE
 
 cp -f build/PcPower_BLE.ino.bin build/PcPower_BLE.bin
 if [ -f build/PcPower_BLE.ino.merged.bin ]; then

@@ -1,4 +1,9 @@
-<!doctype html>
+// GENERATED FILE - DO NOT EDIT BY HAND.
+// Produced by tools/embed_web.py from web/index.html; edit that page instead
+// and re-run the script (tools/build.sh does it for you).
+#pragma once
+
+static const char WEB_INDEX_HTML[] PROGMEM = R"HTMLPAGE(<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -813,3 +818,4 @@ poll();
 </script>
 </body>
 </html>
+)HTMLPAGE";

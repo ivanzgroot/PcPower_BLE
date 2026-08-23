@@ -57,7 +57,8 @@ if ($python -and (Test-Path 'web\index.html') -and (Test-Path 'tools\embed_web.p
 
 Write-Host '==> compiling'
 New-Item -ItemType Directory -Force -Path 'build' | Out-Null
-Invoke-Checked $Acli @('compile','--fqbn',$Fqbn,'--output-dir','build','--warnings','default','PcPower_BLE')
+$jobs = if ($env:BUILD_JOBS) { $env:BUILD_JOBS } else { '2' }
+Invoke-Checked $Acli @('compile','--fqbn',$Fqbn,'--output-dir','build','--warnings','default','--jobs',$jobs,'PcPower_BLE')
 
 Copy-Item 'build\PcPower_BLE.ino.bin' 'build\PcPower_BLE.bin' -Force
 if (Test-Path 'build\PcPower_BLE.ino.merged.bin') {
