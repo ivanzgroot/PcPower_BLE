@@ -1,4 +1,4 @@
-#include "core/ringlog.h"
+#include "ringlog.h"
 
 #include <cstdio>
 

@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "core/ble_addr.h"
+#include "ble_addr.h"
 
 namespace core {
 

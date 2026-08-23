@@ -1,4 +1,4 @@
-#include "core/trigger.h"
+#include "trigger.h"
 
 namespace core {
 

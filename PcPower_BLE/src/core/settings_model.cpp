@@ -1,11 +1,11 @@
-#include "core/settings_model.h"
+#include "settings_model.h"
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <strings.h>  // strcasecmp
 
-#include "core/json_out.h"
+#include "json_out.h"
 
 namespace core {
 

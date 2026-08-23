@@ -6,7 +6,11 @@
 //   GPIO8 -> on-board status LED                                (active LOW)
 #include <Arduino.h>
 
-// Compile-time fallbacks. Runtime values come from settings once they are loaded.
+#include "src/app.h"
+#include "src/device_store.h"
+#include "src/settings_store.h"
+
+// Compile-time fallbacks used before settings are loaded.
 static constexpr uint8_t kPinOut  = 5;
 static constexpr bool    kOutHigh = true;
 static constexpr uint8_t kPinLed  = 8;
@@ -27,7 +31,14 @@ void setup() {
   Serial.setTxTimeoutMs(0);  // never block when no USB host is attached
   delay(500);
   digitalWrite(kPinLed, kLedLow ? HIGH : LOW);
-  Serial.println("\nPcPower_BLE booting");
+  Serial.printf("\nPcPower_BLE %s booting\n", kVersion);
+
+  appLogBegin();
+  SettingsStore::load(g_settings);
+  DeviceStore::load(g_devices);
+  appLogf("boot: v%s, %u known devices, out=GPIO%d sense=GPIO%d", kVersion,
+          (unsigned)g_devices.count(), (int)g_settings.num(core::S_PIN_OUT),
+          (int)g_settings.num(core::S_PIN_SENSE));
 }
 
 void loop() {
@@ -37,6 +48,6 @@ void loop() {
     digitalWrite(kPinLed, kLedLow ? LOW : HIGH);
     delay(40);
     digitalWrite(kPinLed, kLedLow ? HIGH : LOW);
-    Serial.printf("alive %lus\n", (unsigned long)(millis() / 1000));
   }
+  appLogPump();
 }

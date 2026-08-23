@@ -1,9 +1,9 @@
-#include "core/learner.h"
+#include "learner.h"
 
 #include <cstdio>
 #include <cstring>
 
-#include "core/json_out.h"
+#include "json_out.h"
 
 namespace core {
 

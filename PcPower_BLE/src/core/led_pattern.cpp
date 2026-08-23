@@ -1,4 +1,4 @@
-#include "core/led_pattern.h"
+#include "led_pattern.h"
 
 namespace core {
 

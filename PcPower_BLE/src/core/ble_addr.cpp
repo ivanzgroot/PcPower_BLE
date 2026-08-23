@@ -1,4 +1,4 @@
-#include "core/ble_addr.h"
+#include "ble_addr.h"
 
 #include <cstdio>
 #include <cstring>
