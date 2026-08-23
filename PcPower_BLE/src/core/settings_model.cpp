@@ -1,10 +1,11 @@
 #include "core/settings_model.h"
 
-#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <strings.h>  // strcasecmp
+
+#include "core/json_out.h"
 
 namespace core {
 
@@ -259,84 +260,60 @@ void Settings::applyCoupling(bool wifi_connected) {
 
 // --- serialisation ---------------------------------------------------------
 
-// Appends into buf, never writing past len, and reports how much of the buffer is now used.
-static void appendf(char* buf, size_t len, size_t* pos, const char* fmt, ...) {
-  if (!buf || len == 0 || *pos >= len - 1) return;
-  va_list ap;
-  va_start(ap, fmt);
-  const int written = std::vsnprintf(buf + *pos, len - *pos, fmt, ap);
-  va_end(ap);
-  if (written < 0) return;
-  *pos += (size_t)written;
-  if (*pos > len - 1) *pos = len - 1;  // truncated
-}
-
-static void appendEscaped(char* buf, size_t len, size_t* pos, const char* text) {
-  for (const char* p = text; *p; ++p) {
-    if (*p == '"' || *p == '\\') {
-      appendf(buf, len, pos, "\\%c", *p);
-    } else if ((unsigned char)*p < 0x20) {
-      appendf(buf, len, pos, "\\u%04x", (unsigned)(unsigned char)*p);
-    } else {
-      appendf(buf, len, pos, "%c", *p);
-    }
-  }
-}
-
 size_t Settings::toJson(char* buf, size_t len) const {
   size_t pos = 0;
-  appendf(buf, len, &pos, "{");
+  jsonAppend(buf, len, &pos, "{");
   for (uint8_t i = 0; i < S_NUM_SETTINGS; ++i) {
     const SettingDef& d = kSettingDefs[i];
-    appendf(buf, len, &pos, "%s\"%s\":", i ? "," : "", d.key);
+    jsonAppend(buf, len, &pos, "%s\"%s\":", i ? "," : "", d.key);
     if (d.type == SettingType::Str) {
-      appendf(buf, len, &pos, "\"");
-      appendEscaped(buf, len, &pos, str_[i - kFirstStringId]);
-      appendf(buf, len, &pos, "\"");
+      jsonAppend(buf, len, &pos, "\"");
+      jsonAppendEscaped(buf, len, &pos, str_[i - kFirstStringId]);
+      jsonAppend(buf, len, &pos, "\"");
     } else {
-      appendf(buf, len, &pos, "%d", (int)num_[i]);
+      jsonAppend(buf, len, &pos, "%d", (int)num_[i]);
     }
   }
-  appendf(buf, len, &pos, "}");
+  jsonAppend(buf, len, &pos, "}");
   return pos;
 }
 
 size_t Settings::schemaToJson(char* buf, size_t len) {
   size_t pos = 0;
-  appendf(buf, len, &pos, "[");
+  jsonAppend(buf, len, &pos, "[");
   for (uint8_t i = 0; i < S_NUM_SETTINGS; ++i) {
     const SettingDef& d = kSettingDefs[i];
     const char* type = d.type == SettingType::Bool   ? "bool"
                        : d.type == SettingType::Int  ? "int"
                        : d.type == SettingType::Enum ? "enum"
                                                      : "str";
-    appendf(buf, len, &pos, "%s{\"key\":\"%s\",\"type\":\"%s\",\"min\":%d,\"max\":%d,", i ? "," : "",
+    jsonAppend(buf, len, &pos, "%s{\"key\":\"%s\",\"type\":\"%s\",\"min\":%d,\"max\":%d,", i ? "," : "",
             d.key, type, (int)d.min, (int)d.max);
-    appendf(buf, len, &pos, "\"label\":\"");
-    appendEscaped(buf, len, &pos, d.label);
-    appendf(buf, len, &pos, "\",\"unit\":\"%s\",\"group\":\"%s\",\"options\":", d.unit, d.group);
+    jsonAppend(buf, len, &pos, "\"label\":\"");
+    jsonAppendEscaped(buf, len, &pos, d.label);
+    jsonAppend(buf, len, &pos, "\",\"unit\":\"%s\",\"group\":\"%s\",\"options\":", d.unit, d.group);
     if (d.options) {
-      appendf(buf, len, &pos, "\"%s\"", d.options);
+      jsonAppend(buf, len, &pos, "\"%s\"", d.options);
     } else {
-      appendf(buf, len, &pos, "null");
+      jsonAppend(buf, len, &pos, "null");
     }
-    appendf(buf, len, &pos, ",\"help\":\"");
-    appendEscaped(buf, len, &pos, d.help);
-    appendf(buf, len, &pos, "\"}");
+    jsonAppend(buf, len, &pos, ",\"help\":\"");
+    jsonAppendEscaped(buf, len, &pos, d.help);
+    jsonAppend(buf, len, &pos, "\"}");
   }
-  appendf(buf, len, &pos, "]");
+  jsonAppend(buf, len, &pos, "]");
   return pos;
 }
 
 size_t Settings::toConf(char* buf, size_t len) const {
   size_t pos = 0;
-  appendf(buf, len, &pos, "# PcPower_BLE settings\n");
+  jsonAppend(buf, len, &pos, "# PcPower_BLE settings\n");
   for (uint8_t i = 0; i < S_NUM_SETTINGS; ++i) {
     const SettingDef& d = kSettingDefs[i];
     if (d.type == SettingType::Str) {
-      appendf(buf, len, &pos, "%s=%s\n", d.key, str_[i - kFirstStringId]);
+      jsonAppend(buf, len, &pos, "%s=%s\n", d.key, str_[i - kFirstStringId]);
     } else {
-      appendf(buf, len, &pos, "%s=%d\n", d.key, (int)num_[i]);
+      jsonAppend(buf, len, &pos, "%s=%d\n", d.key, (int)num_[i]);
     }
   }
   return pos;
