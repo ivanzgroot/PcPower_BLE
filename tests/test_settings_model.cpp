@@ -19,7 +19,7 @@ TEST(settings_defaults_match_the_spec) {
   CHECK_EQ(s.num(core::S_ABSENCE_MS), 60000);
   CHECK_EQ(s.num(core::S_RSSI_MIN), -100);
   CHECK(s.flag(core::S_SLEEP_IS_OFF));
-  CHECK_EQ(s.num(core::S_OFF_CONFIRM), 5);
+  CHECK_EQ(s.num(core::S_OFF_CONFIRM), 12);
   CHECK_EQ(s.num(core::S_ON_FAST_MS), 300);
   CHECK_STREQ(s.str(core::S_AP_PASS), "123454321");
   CHECK_STREQ(s.str(core::S_HOSTNAME), "pcpower");

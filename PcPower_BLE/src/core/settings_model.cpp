@@ -67,10 +67,10 @@ const SettingDef kSettingDefs[S_NUM_SETTINGS] = {
      "Lit for at least this much of the window means the PC is on."},
     {"off_duty_pct", I, 0, 40, 2, nullptr, "Off threshold", "%", nullptr, "PC sense",
      "Lit for at most this much means the PC is off."},
-    {"spread_pct", I, 5, 90, 25, nullptr, "Pulsing threshold", "%", nullptr, "PC sense",
+    {"spread_pct", I, 5, 90, 35, nullptr, "Pulsing threshold", "%", nullptr, "PC sense",
      "Between the two thresholds: brightness steadier than this is a dimmed LED (on), more "
      "variable is a pulsing LED (sleep)."},
-    {"off_confirm", I, 1, 50, 5, nullptr, "Confirmations before believing off", "", nullptr,
+    {"off_confirm", I, 1, 100, 12, nullptr, "Confirmations before believing off", "", nullptr,
      "PC sense",
      "A false 'off' would press the button on a running PC, so leaving the on state is "
      "deliberately slow."},
