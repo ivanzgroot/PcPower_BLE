@@ -1,0 +1,5 @@
+build/
+tools/bin/
+tools/.arduino-data/
+tests/bin/
+*.o
