@@ -4,6 +4,8 @@
 
 #include "core/json_out.h"
 
+volatile bool g_devices_locked = false;
+
 core::Settings g_settings;
 core::DeviceList g_devices;
 core::RingLog g_log;

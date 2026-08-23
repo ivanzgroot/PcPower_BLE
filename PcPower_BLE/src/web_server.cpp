@@ -24,6 +24,51 @@ static uint8_t s_ota_percent = 0;
 static size_t s_ota_written = 0;
 static size_t s_ota_total = 0;
 static uint32_t s_reboot_at = 0;
+static bool s_ota_rejected = false;
+
+// --- request guards --------------------------------------------------------
+//
+// There is no authentication here, by design - this board lives on a trusted LAN. That makes
+// two cheap checks worth having, because a browser on that LAN can be pointed at us by any web
+// page the user happens to visit:
+//
+//   Host   - blocks DNS rebinding. An attacker's domain resolving to our IP arrives with their
+//            hostname in the Host header, not ours, so we refuse it.
+//   Origin - blocks CSRF. Browsers attach Origin to cross-origin POSTs; our own page sends its
+//            own origin. Requests with no Origin at all (curl, the serial console's sibling
+//            tools) are allowed through, so scripting the API stays as easy as it was.
+
+static bool hostAllowed() {
+  String host = s_server.hostHeader();
+  if (host.length() == 0) return false;
+  const int colon = host.indexOf(':');
+  if (colon >= 0) host = host.substring(0, colon);
+
+  if (host == Net::ip()) return true;
+  if (host == "localhost" || host == "192.168.4.1") return true;
+
+  const String name(Net::hostname());
+  return host.equalsIgnoreCase(name) || host.equalsIgnoreCase(name + ".local");
+}
+
+static bool originAllowed() {
+  const String origin = s_server.header("Origin");
+  if (origin.length() == 0) return true;  // not a browser, or a same-origin GET
+  const String expected = String("http://") + s_server.hostHeader();
+  return origin.equalsIgnoreCase(expected);
+}
+
+static bool requestAllowed() {
+  if (!hostAllowed()) {
+    s_server.send(421, "text/plain", "wrong host - reach this board by its own name or IP");
+    return false;
+  }
+  if (!originAllowed()) {
+    s_server.send(403, "text/plain", "cross-origin requests are refused");
+    return false;
+  }
+  return true;
+}
 
 // --- helpers ---------------------------------------------------------------
 
@@ -216,7 +261,9 @@ static void handleDeviceAdd() {
   }
 
   const String label = s_server.hasArg("label") ? s_server.arg("label") : String("Device");
+  g_devices_locked = true;
   const int index = g_devices.add(addr, (uint8_t)type, label.c_str());
+  g_devices_locked = false;
   if (index == -1) {
     sendError(400, "the device list is full");
     return;
@@ -236,12 +283,14 @@ static void handleDeviceUpdate() {
     sendError(400, "no such device");
     return;
   }
+  g_devices_locked = true;
   if (s_server.hasArg("label")) g_devices.setLabel((uint8_t)index, s_server.arg("label").c_str());
   if (s_server.hasArg("enabled")) {
     long enabled = 1;
     argInt("enabled", &enabled);
     g_devices.setEnabled((uint8_t)index, enabled != 0);
   }
+  g_devices_locked = false;
   DeviceStore::save(g_devices);
   sendOk();
 }
@@ -253,7 +302,9 @@ static void handleDeviceDelete() {
     return;
   }
   appLogf("devices: removed %s", g_devices.at((uint8_t)index).label);
+  g_devices_locked = true;
   g_devices.remove((uint8_t)index);
+  g_devices_locked = false;
   DeviceStore::save(g_devices);
   sendOk();
 }
@@ -291,7 +342,9 @@ static void handleLearnAccept() {
   String label = s_server.hasArg("label") ? s_server.arg("label") : String("");
   if (label.length() == 0) label = c.name[0] ? String(c.name) : String("Controller");
 
+  g_devices_locked = true;
   const int added = g_devices.add(c.addr, c.addr_type, label.c_str());
+  g_devices_locked = false;
   if (added == -1) {
     sendError(400, "the device list is full");
     return;
@@ -361,6 +414,11 @@ static void handleUpdateUpload() {
   HTTPUpload& upload = s_server.upload();
 
   if (upload.status == UPLOAD_FILE_START) {
+    s_ota_rejected = !hostAllowed() || !originAllowed();
+    if (s_ota_rejected) {
+      appLog("ota: refused, request did not come from this board's own address");
+      return;
+    }
     s_ota_running = true;
     s_ota_written = 0;
     s_ota_percent = 0;
@@ -375,6 +433,7 @@ static void handleUpdateUpload() {
       appLogf("ota: cannot start (%s)", Update.errorString());
     }
   } else if (upload.status == UPLOAD_FILE_WRITE) {
+    if (s_ota_rejected) return;
     if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
       appLogf("ota: write failed (%s)", Update.errorString());
     }
@@ -384,6 +443,7 @@ static void handleUpdateUpload() {
       s_ota_percent = (uint8_t)(percent > 100 ? 100 : percent);
     }
   } else if (upload.status == UPLOAD_FILE_END) {
+    if (s_ota_rejected) return;
     if (Update.end(true)) {
       s_ota_percent = 100;
       appLogf("ota: %u bytes accepted, rebooting", (unsigned)s_ota_written);
@@ -397,6 +457,11 @@ static void handleUpdateUpload() {
 }
 
 static void handleUpdateDone() {
+  if (s_ota_rejected) {
+    s_ota_rejected = false;
+    s_server.send(403, "text/plain", "cross-origin requests are refused");
+    return;
+  }
   const bool ok = !Update.hasError();
   if (ok) {
     sendJson(200, "{\"ok\":true}");
@@ -422,37 +487,44 @@ static void handleNotFound() {
 
 // --- wiring ----------------------------------------------------------------
 
+static void route(const char* path, HTTPMethod method, void (*handler)()) {
+  s_server.on(path, method, [handler]() {
+    if (!requestAllowed()) return;
+    handler();
+  });
+}
+
 namespace Web {
 
 void begin() {
-  s_server.on("/", HTTP_GET, handleRoot);
-  s_server.on("/api/status", HTTP_GET, handleStatus);
-  s_server.on("/api/config", HTTP_GET, handleConfigGet);
-  s_server.on("/api/config", HTTP_POST, handleConfigPost);
-  s_server.on("/api/config/schema", HTTP_GET, handleConfigSchema);
-  s_server.on("/api/config/defaults", HTTP_POST, handleConfigDefaults);
-  s_server.on("/api/config/export", HTTP_GET, handleConfigExport);
-  s_server.on("/api/config/import", HTTP_POST, handleConfigImport);
-  s_server.on("/api/devices", HTTP_GET, handleDevicesGet);
-  s_server.on("/api/devices", HTTP_POST, handleDeviceAdd);
-  s_server.on("/api/devices/update", HTTP_POST, handleDeviceUpdate);
-  s_server.on("/api/devices/delete", HTTP_POST, handleDeviceDelete);
-  s_server.on("/api/learn/start", HTTP_POST, handleLearnStart);
-  s_server.on("/api/learn/cancel", HTTP_POST, handleLearnCancel);
-  s_server.on("/api/learn/status", HTTP_GET, handleLearnStatus);
-  s_server.on("/api/learn/accept", HTTP_POST, handleLearnAccept);
-  s_server.on("/api/action/press", HTTP_POST, handleActionPress);
-  s_server.on("/api/wifi/scan", HTTP_GET, handleWifiScan);
-  s_server.on("/api/wifi", HTTP_POST, handleWifiSave);
-  s_server.on("/api/wifi/forget", HTTP_POST, handleWifiForget);
-  s_server.on("/api/logs", HTTP_GET, handleLogs);
-  s_server.on("/api/logs/clear", HTTP_POST, handleLogsClear);
-  s_server.on("/api/reboot", HTTP_POST, handleReboot);
+  route("/", HTTP_GET, handleRoot);
+  route("/api/status", HTTP_GET, handleStatus);
+  route("/api/config", HTTP_GET, handleConfigGet);
+  route("/api/config", HTTP_POST, handleConfigPost);
+  route("/api/config/schema", HTTP_GET, handleConfigSchema);
+  route("/api/config/defaults", HTTP_POST, handleConfigDefaults);
+  route("/api/config/export", HTTP_GET, handleConfigExport);
+  route("/api/config/import", HTTP_POST, handleConfigImport);
+  route("/api/devices", HTTP_GET, handleDevicesGet);
+  route("/api/devices", HTTP_POST, handleDeviceAdd);
+  route("/api/devices/update", HTTP_POST, handleDeviceUpdate);
+  route("/api/devices/delete", HTTP_POST, handleDeviceDelete);
+  route("/api/learn/start", HTTP_POST, handleLearnStart);
+  route("/api/learn/cancel", HTTP_POST, handleLearnCancel);
+  route("/api/learn/status", HTTP_GET, handleLearnStatus);
+  route("/api/learn/accept", HTTP_POST, handleLearnAccept);
+  route("/api/action/press", HTTP_POST, handleActionPress);
+  route("/api/wifi/scan", HTTP_GET, handleWifiScan);
+  route("/api/wifi", HTTP_POST, handleWifiSave);
+  route("/api/wifi/forget", HTTP_POST, handleWifiForget);
+  route("/api/logs", HTTP_GET, handleLogs);
+  route("/api/logs/clear", HTTP_POST, handleLogsClear);
+  route("/api/reboot", HTTP_POST, handleReboot);
   s_server.on("/update", HTTP_POST, handleUpdateDone, handleUpdateUpload);
   s_server.onNotFound(handleNotFound);
 
-  const char* headers[] = {"Content-Length"};
-  s_server.collectHeaders(headers, 1);
+  const char* headers[] = {"Content-Length", "Origin"};
+  s_server.collectHeaders(headers, 2);
   s_server.begin();
   appLog("web: listening on port 80");
 }

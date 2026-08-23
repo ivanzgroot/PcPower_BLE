@@ -6,8 +6,13 @@ The web page is only a client of this API — anything the interface can do, `cu
 - Responses are JSON unless noted. Request bodies are `application/x-www-form-urlencoded`, which
   is why the firmware carries no JSON parser: it emits JSON, and never reads it.
 - Errors return a non-200 status with `{"ok":false,"error":"..."}`.
-- There is **no authentication**. Anyone who can reach the board can update its firmware. Keep it
-  on a network you trust.
+- There is **no authentication**, by design. Anyone who can reach the board can update its
+  firmware — keep it on a network you trust.
+- Two guards make up for that where a browser is involved. Requests must carry a **`Host`** header
+  naming this board (its IP, `pcpower.local`, or `192.168.4.1`), which stops DNS rebinding; and a
+  request carrying an **`Origin`** header must match that host, which stops a web page you happen
+  to be visiting from driving the API. Requests with no `Origin` — `curl`, scripts — are allowed
+  through, so automating the API is as easy as it looks below. A refused request gets 421 or 403.
 - Durations in milliseconds. The value **4294967295** (`UINT32_MAX`) means *never* — no pulse yet,
   never seen, never been on.
 

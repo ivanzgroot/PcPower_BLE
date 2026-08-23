@@ -159,7 +159,9 @@ static void handleAccept(char* rest) {
   }
   while (*rest == ' ') ++rest;
   const char* label = *rest ? rest : (c.name[0] ? c.name : "Controller");
+  g_devices_locked = true;
   const int added = g_devices.add(c.addr, c.addr_type, label);
+  g_devices_locked = false;
   if (added < 0) {
     Serial.println(F("could not add (list full, or already known)"));
     return;
@@ -224,7 +226,9 @@ static void execute(char* line) {
       return;
     }
     Serial.printf("removed %s\n", g_devices.at((uint8_t)index).label);
+    g_devices_locked = true;
     g_devices.remove((uint8_t)index);
+    g_devices_locked = false;
     DeviceStore::save(g_devices);
   } else if (!strcmp(cmd, "enable")) {
     char* index_text = nextWord(&cursor);
@@ -234,7 +238,9 @@ static void execute(char* line) {
       Serial.println(F("usage: enable <index> <0|1>"));
       return;
     }
+    g_devices_locked = true;
     g_devices.setEnabled((uint8_t)index, strtol(value_text, nullptr, 10) != 0);
+    g_devices_locked = false;
     DeviceStore::save(g_devices);
     Serial.println(F("ok"));
   } else if (!strcmp(cmd, "press")) {

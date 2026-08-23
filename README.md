@@ -233,6 +233,20 @@ tests/                   native unit tests
 docs/                    wiring, API reference, design spec and implementation plan
 ```
 
+## Security posture
+
+There is no password on the web interface — it is meant for a home LAN, and being locked out of
+the thing that turns your PC on is worse than the alternative. Two things follow from that:
+
+- **Anyone on your network can flash firmware onto it.** Do not put it on a guest or public
+  network.
+- Requests are checked for a matching `Host` header and, when a browser supplies one, a matching
+  `Origin`. That stops a random web page you visit from reaching the board through your browser,
+  which is the realistic attack — but it is not a substitute for a trusted network.
+
+The hotspot password defaults to `123454321` and is only used during setup. Change it in
+Settings → Network if the board will live somewhere its hotspot is worth attacking.
+
 ## Licence
 
 MIT — see `LICENSE`.

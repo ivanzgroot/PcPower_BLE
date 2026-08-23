@@ -13,7 +13,8 @@ static NimBLEScan* s_scan = nullptr;
 static volatile uint32_t s_adverts = 0;
 static volatile uint32_t s_last_advert_ms = 0;
 static volatile bool s_paused = false;
-static volatile bool s_inhibited = false;
+static volatile bool s_external_inhibit = false;  // OTA
+static volatile bool s_learn_inhibit = false;    // a candidate must not press the button
 static volatile bool s_started = false;
 
 static volatile core::TriggerReason s_last_reason = core::TriggerReason::UnknownDevice;
@@ -66,6 +67,9 @@ class ScanCallbacks : public NimBLEScanCallbacks {
       return;
     }
 
+    // The list is being edited from another task; skip this advertisement rather than walk it.
+    if (g_devices_locked) return;
+
     const int index = g_devices.find(addr, type);
     if (index < 0) return;  // not ours: the cheapest possible exit
 
@@ -79,7 +83,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
     in.ms_since_last_pulse = PowerOut::msSinceLastPulse();
     in.device_absent_ms = absent;
     in.rssi = rssi;
-    in.inhibited = s_inhibited;
+    in.inhibited = s_external_inhibit || s_learn_inhibit;
 
     const core::TriggerReason reason = core::evaluate(in, triggerConfigFrom(g_settings));
     s_last_reason = reason;
@@ -156,19 +160,19 @@ void setPaused(bool paused) {
 bool paused() { return s_paused; }
 bool scanning() { return s_scan && s_scan->isScanning(); }
 
-void setInhibited(bool inhibit) { s_inhibited = inhibit; }
-bool inhibited() { return s_inhibited; }
+void setInhibited(bool inhibit) { s_external_inhibit = inhibit; }
+bool inhibited() { return s_external_inhibit || s_learn_inhibit; }
 
 void startLearning(uint32_t duration_ms) {
   s_learner.start(millis(), duration_ms);
-  s_inhibited = true;  // a candidate must not press the button while it is being held close
+  s_learn_inhibit = true;  // a candidate must not press the button while it is held close
   if (s_paused) setPaused(false);
   appLogf("learn: listening for %u ms", (unsigned)duration_ms);
 }
 
 void cancelLearning() {
   s_learner.cancel();
-  s_inhibited = false;
+  s_learn_inhibit = false;
   appLog("learn: cancelled");
 }
 
@@ -213,12 +217,9 @@ void tick() {
     DeviceStore::save(g_devices);  // persist the trigger counter, off the fast path
   }
 
-  if (s_learner.active(now)) {
-    // nothing to do; the window closes itself
-  } else if (s_inhibited && !s_learner.active(now) && s_learner.count() > 0) {
-    // Learning finished on its own - stop inhibiting so the device works again.
-    s_inhibited = false;
-  }
+  // Learning windows close themselves; release the inhibit when one does, whether or not it
+  // heard anything. This must not touch the OTA inhibit, which is released by the web layer.
+  if (s_learn_inhibit && !s_learner.active(now)) s_learn_inhibit = false;
 
   // Scan watchdog. Hearing nothing at all for 30 s means the radio, not the neighbourhood.
   if (!s_paused && s_started && (uint32_t)(now - s_last_watchdog_ms) > 30000) {
