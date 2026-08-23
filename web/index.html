@@ -8,56 +8,37 @@
 <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme:dark)">
 <title>PcPower</title>
 <style>
-:root{
---bg:#eef0f4;--panel:#fff;--panel2:#f5f6f9;--ink:#15181d;--muted:#5f6775;--line:#dde1e8;
---accent:#2563eb;--accent-ink:#fff;--accent-soft:#e5edfd;
---ok:#14743d;--ok-bg:#d9f2e3;--warn:#8a5b00;--warn-bg:#fbeed0;--bad:#ab2020;--bad-bg:#fae1e1;
---grey:#5c6473;--grey-bg:#e3e6ec;
---shadow:0 1px 2px rgba(15,20,30,.05),0 6px 18px rgba(15,20,30,.05);
-}
-@media (prefers-color-scheme:dark){:root{
---bg:#0f1115;--panel:#171a20;--panel2:#1d2129;--ink:#e7eaef;--muted:#98a1b1;--line:#2a2f39;
---accent:#6d9bff;--accent-ink:#0f1115;--accent-soft:#1b2740;
---ok:#5ed095;--ok-bg:#14331f;--warn:#e8ae4a;--warn-bg:#332612;--bad:#ff7676;--bad-bg:#3a1717;
---grey:#98a1b1;--grey-bg:#242832;
---shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
-}}
+:root{--bg:#eef0f4;--panel:#fff;--panel2:#f5f6f9;--ink:#15181d;--muted:#5f6775;--line:#dde1e8;--accent:#2563eb;--accent-ink:#fff;--accent-soft:#e5edfd;--ok:#14743d;--ok-bg:#d9f2e3;--warn:#8a5b00;--warn-bg:#fbeed0;--bad:#ab2020;--bad-bg:#fae1e1;--grey:#5c6473;--grey-bg:#e3e6ec;--shadow:0 1px 2px rgba(15,20,30,.05),0 6px 18px rgba(15,20,30,.05)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--panel:#171a20;--panel2:#1d2129;--ink:#e7eaef;--muted:#98a1b1;--line:#2a2f39;--accent:#6d9bff;--accent-ink:#0f1115;--accent-soft:#1b2740;--ok:#5ed095;--ok-bg:#14331f;--warn:#e8ae4a;--warn-bg:#332612;--bad:#ff7676;--bad-bg:#3a1717;--grey:#98a1b1;--grey-bg:#242832;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3)}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
-font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
 .wrap{max-width:620px;margin:0 auto;padding:0 12px}
 main.wrap{padding-bottom:48px}
 header{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
 .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:10px;padding-bottom:8px}
 h1{margin:0;font-size:19px;letter-spacing:-.01em}
-.brand .sub{font-size:12px;color:var(--muted);min-height:16px;overflow-wrap:anywhere}
+.brand .sub{font-size:12px;min-height:16px}
 .conn{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);white-space:nowrap}
-.conn i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:block}
+.conn i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
 .conn.ok i{background:var(--ok)}
-.conn.bad i{background:var(--bad)}
-.conn.bad{color:var(--bad)}
+.conn.bad{color:var(--bad)}.conn.bad i{background:var(--bad)}
 .tabs{display:flex;gap:2px}
-.tabs button{flex:1 1 0;min-height:46px;padding:0 2px;border:0;background:none;color:var(--muted);
-font:inherit;font-size:14px;font-weight:600;border-bottom:2px solid transparent;cursor:pointer}
+.tabs button{flex:1 1 0;min-height:46px;padding:0 2px;border:0;border-bottom:2px solid transparent;background:none;color:var(--muted);font:inherit;font-size:14px;font-weight:600}
 .tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
-.view{display:none}
-.view.on{display:block}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;
-margin:12px 0;box-shadow:var(--shadow)}
+.view{display:none}.view.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0;box-shadow:var(--shadow)}
 .card.center{text-align:center}
 .h{margin:0;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .card>.h{margin-bottom:10px}
 .hrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
 .hrow .h{margin:0}
 .help{margin:6px 0 10px;font-size:13px;color:var(--muted)}
-.hint{margin-top:6px;font-size:12px;color:var(--muted)}
-.sub{font-size:13px;color:var(--muted)}
+.hint,.meta{margin-top:6px;font-size:12.5px;color:var(--muted)}
+.sub{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;overflow-wrap:anywhere}
-.banner{display:none;margin:12px 0;padding:12px 14px;border-radius:12px;background:var(--bad-bg);
-color:var(--bad);font-size:14px;border:1px solid transparent}
-.badge{display:block;font-size:38px;font-weight:800;letter-spacing:.1em;padding:20px 8px;border-radius:14px;
-border:2px solid transparent}
+.banner{display:none;margin:12px 0;padding:12px 14px;border-radius:12px;background:var(--bad-bg);color:var(--bad);font-size:14px}
+.badge{font-size:38px;font-weight:800;letter-spacing:.1em;padding:20px 8px;border-radius:14px;border:2px solid transparent}
 .badge.on{background:var(--ok-bg);color:var(--ok)}
 .badge.off{background:var(--grey-bg);color:var(--grey)}
 .badge.sleep{background:var(--warn-bg);color:var(--warn)}
@@ -66,39 +47,35 @@ border:2px solid transparent}
 .mrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px;margin-bottom:6px}
 .mrow b{font-variant-numeric:tabular-nums;font-size:15px}
 .bar{position:relative;height:16px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);overflow:hidden}
-.bar>b{display:block;height:100%;width:0;background:var(--accent);border-radius:8px 0 0 8px;transition:width .25s linear}
+.bar>b{display:block;height:100%;width:0;background:var(--accent);transition:width .25s linear}
 .bar .tick{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--ink);opacity:.35}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;align-items:baseline}
 .kv .k{color:var(--muted)}
 .kv .v{text-align:right;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
-.sig{display:inline-flex;align-items:flex-end;gap:2px;height:11px;margin-right:5px;vertical-align:-1px}
+.sig{display:inline-flex;align-items:flex-end;gap:2px;height:11px;margin-right:5px}
 .sig i{width:3px;border-radius:1px;background:var(--line)}
 .sig i:nth-child(1){height:30%}.sig i:nth-child(2){height:53%}.sig i:nth-child(3){height:76%}.sig i:nth-child(4){height:100%}
 .sig i.f{background:var(--ok)}
-.chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;
-letter-spacing:.03em;text-transform:uppercase;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
 .chip.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
 .chip.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
 .chip.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 16px;
-border-radius:11px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);
-font:inherit;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:11px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:inherit;font-size:15px;font-weight:600;text-decoration:none}
 .btn:active{transform:translateY(1px)}
-.btn[disabled]{opacity:.45;cursor:default}
+.btn[disabled]{opacity:.45}
 .btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 .btn.danger{color:var(--bad);border-color:var(--bad)}
 .btn.danger.pri{background:var(--bad);color:#fff;border-color:transparent}
 .btn.sm{min-height:36px;padding:0 12px;font-size:13px}
-.btn.wide{width:100%}
+.btn.wide,.wide{width:100%}
 .row{display:flex;flex-wrap:wrap;gap:8px}
 .row>*{flex:1 1 auto}
 .grow{flex:1 1 140px;min-width:0}
 label{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
-input,select,textarea{width:100%;min-height:44px;padding:10px 12px;border-radius:11px;
-border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:inherit;font-size:16px}
+input,select,textarea{width:100%;min-height:44px;padding:10px 12px;border-radius:11px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:inherit;font-size:16px}
 input[type=checkbox]{width:26px;height:26px;min-height:26px;margin:0;flex:0 0 auto;accent-color:var(--accent)}
 input[type=file]{padding:8px}
-textarea{min-height:150px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.4}
+textarea{min-height:150px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
 .f{padding:10px 0;border-top:1px solid var(--line)}
 .f:first-child{border-top:0}
 .f .lbl{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
@@ -108,48 +85,35 @@ textarea{min-height:150px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas
 .f .fhelp{margin:6px 0 0;font-size:12.5px;color:var(--muted)}
 .f.chg{border-left:3px solid var(--accent);margin-left:-14px;padding-left:11px;background:var(--accent-soft)}
 .f.bool .lbl{margin-bottom:0}
-.f.bool .lbl>label{flex:1 1 auto}
-.savebar{position:sticky;bottom:0;margin:12px 0 0;display:flex;gap:8px;align-items:center;
-background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;box-shadow:var(--shadow)}
+.f.bool label{flex:1 1 auto}
+.savebar{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;box-shadow:var(--shadow)}
 .savebar .st{flex:1 1 auto;font-size:13px;color:var(--muted)}
 .dev{padding:12px 0;border-top:1px solid var(--line)}
 .dev:first-child{border-top:0}
-.dev .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.dev .nm{font-weight:700;overflow-wrap:anywhere}
-.dev .meta{font-size:12.5px;color:var(--muted);margin-top:3px}
-.dev .row{margin-top:10px}
+.dev .row,.mt{margin-top:12px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.nm{font-weight:700;overflow-wrap:anywhere}
 .sw{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;flex:0 0 auto}
 .cand{padding:10px;border-radius:11px;border:1px solid var(--line);margin-top:8px;background:var(--panel2)}
-.cand.no{background:transparent;border-style:dashed}
+.cand.no{background:none;border-style:dashed}
 .cand.no .nm{color:var(--muted)}
 .cand .reason{margin-top:6px;font-size:12.5px;color:var(--warn)}
-.count{font-variant-numeric:tabular-nums;font-weight:700;font-size:15px}
 .loglist{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5}
 .loglist div{display:flex;gap:8px;padding:2px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}
 .loglist div:first-child{border-top:0}
 .loglist .t{color:var(--muted);flex:0 0 auto}
-.net{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:44px;
-padding:8px 10px;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);
-font:inherit;font-size:14px;text-align:left;cursor:pointer}
-.net:first-child{border-top:0}
+.net{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:44px;padding:8px 10px;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:14px;text-align:left}
 .net .r{color:var(--muted);font-size:12.5px;white-space:nowrap;display:flex;align-items:center}
 .prog{height:12px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);overflow:hidden;margin-top:10px}
 .prog>b{display:block;height:100%;width:0;background:var(--accent);transition:width .2s linear}
-.warnbox{margin:10px 0 0;padding:10px 12px;border-radius:11px;background:var(--warn-bg);color:var(--warn);font-size:13px}
-.dangerbox{margin:10px 0 0;padding:12px;border-radius:11px;background:var(--bad-bg);color:var(--bad);font-size:13.5px}
-details.card>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
-min-height:44px;font-weight:700;font-size:15px}
-details.card>summary::-webkit-details-marker{display:none}
-details.card>summary::after{content:"+";font-size:20px;color:var(--muted);font-weight:400}
-details.card[open]>summary::after{content:"\2212"}
-#toasts{position:fixed;left:0;right:0;bottom:14px;z-index:60;display:flex;flex-direction:column;
-align-items:center;gap:8px;pointer-events:none;padding:0 12px}
-.toast{max-width:100%;padding:11px 15px;border-radius:11px;font-size:14px;font-weight:600;
-box-shadow:0 6px 22px rgba(0,0,0,.25);transition:opacity .3s;overflow-wrap:anywhere;
-background:var(--ink);color:var(--bg)}
+.warnbox{margin-top:10px;padding:11px 12px;border-radius:11px;background:var(--warn-bg);color:var(--warn);font-size:13px}
+.warnbox.bad{background:var(--bad-bg);color:var(--bad)}
+details.card>summary{min-height:44px;font-weight:700;font-size:15px;padding:4px 0}
+button,summary{cursor:pointer}
+#toasts{position:fixed;left:0;right:0;bottom:14px;z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 12px}
+.toast{max-width:100%;padding:11px 15px;border-radius:11px;font-size:14px;font-weight:600;box-shadow:0 6px 22px rgba(0,0,0,.25);transition:opacity .3s;overflow-wrap:anywhere;background:var(--ink);color:var(--bg)}
 .toast.err{background:var(--bad);color:#fff}
 .toast.warn{background:var(--warn);color:#fff}
-.mt{margin-top:12px}
 .nowrap{white-space:nowrap}
 </style>
 </head>
@@ -170,7 +134,6 @@ background:var(--ink);color:var(--bg)}
 <main class="wrap">
 <div class="banner" id="offline">Device unreachable. It may be rebooting, or off this network. Retrying automatically.</div>
 
-<!-- ============================ STATUS ============================ -->
 <section class="view on" id="v_status">
 <div class="card center">
 <div class="badge unknown" id="badge">&mdash;</div>
@@ -209,7 +172,6 @@ background:var(--ink);color:var(--bg)}
 </div>
 </section>
 
-<!-- ============================ DEVICES ============================ -->
 <section class="view" id="v_devices">
 <div class="card">
 <h2 class="h">Learn a device</h2>
@@ -227,7 +189,7 @@ background:var(--ink);color:var(--bg)}
 <summary>Add a device by address</summary>
 <div class="mt">
 <label for="ma">Address</label>
-<input id="ma" placeholder="AA:BB:CC:DD:EE:FF" autocapitalize="characters" autocomplete="off" spellcheck="false">
+<input id="ma" placeholder="AA:BB:CC:DD:EE:FF" autocapitalize="characters" autocomplete="off">
 <div class="row mt">
 <div class="grow"><label for="mt">Address type</label>
 <select id="mt"><option value="0">Public (type 0)</option><option value="1" selected>Random static (type 1)</option></select></div>
@@ -239,7 +201,6 @@ background:var(--ink);color:var(--bg)}
 </details>
 </section>
 
-<!-- ============================ SETTINGS ============================ -->
 <section class="view" id="v_settings">
 <div class="card">
 <div class="hrow"><h2 class="h">Settings</h2><button class="btn sm" id="setreload">Reload</button></div>
@@ -257,7 +218,6 @@ background:var(--ink);color:var(--bg)}
 </div>
 </section>
 
-<!-- ============================ SYSTEM ============================ -->
 <section class="view" id="v_system">
 <div class="card">
 <div class="hrow"><h2 class="h">WiFi</h2><button class="btn sm" id="wscan">Scan</button></div>
@@ -265,7 +225,7 @@ background:var(--ink);color:var(--bg)}
 <div id="wlist"></div>
 <div class="mt">
 <label for="wssid">Network name</label>
-<input id="wssid" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="SSID">
+<input id="wssid" autocapitalize="none" autocomplete="off" placeholder="SSID">
 </div>
 <div class="mt">
 <label for="wpass">Password</label>
@@ -296,7 +256,7 @@ background:var(--ink);color:var(--bg)}
 </div>
 <div id="expbox" style="display:none" class="mt">
 <label for="exp">Current configuration</label>
-<textarea id="exp" readonly spellcheck="false"></textarea>
+<textarea id="exp" readonly></textarea>
 <div class="row mt">
 <a class="btn" id="dl" download="pcpower.conf" style="display:none">Download</a>
 <button class="btn" id="copybtn">Copy to clipboard</button>
@@ -305,7 +265,7 @@ background:var(--ink);color:var(--bg)}
 </div>
 <div id="impbox" style="display:none" class="mt">
 <label for="imp">Paste a configuration</label>
-<textarea id="imp" spellcheck="false" placeholder="pulse_ms=300&#10;cooldown_ms=10000"></textarea>
+<textarea id="imp" placeholder="pulse_ms=300&#10;cooldown_ms=10000"></textarea>
 <button class="btn pri wide mt" id="impgo">Apply configuration</button>
 </div>
 </div>
@@ -316,7 +276,7 @@ background:var(--ink);color:var(--bg)}
 <button class="btn wide" id="pressbtn">Short press</button>
 <button class="btn danger wide mt" id="longbtn">Force off (long press)</button>
 <div id="longarm" style="display:none">
-<div class="dangerbox">This holds the power button down for about six seconds. Most PCs cut power immediately, without saving anything. Use it only when the machine is unresponsive.</div>
+<div class="warnbox bad">This holds the power button down for about six seconds. Most PCs cut power immediately, without saving anything. Use it only when the machine is unresponsive.</div>
 <div class="row mt">
 <button class="btn danger pri" id="longgo">Yes, force the PC off</button>
 <button class="btn" id="longno">Cancel</button>
@@ -335,18 +295,18 @@ background:var(--ink);color:var(--bg)}
 <div id="toasts"></div>
 <script>
 "use strict";
-var NEVER = 4294967295;
-var $ = function(id){ return document.getElementById(id); };
-var $$ = function(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); };
+// Everything the page needs. No dependencies, no external requests.
+var NEVER = 4294967295;            // the firmware's "never" for millisecond ages
+var $ = id => document.getElementById(id);
+var on = (id, ev, fn) => $(id).addEventListener(ev, fn);
 var ENT = {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
-function esc(v){ return String(v==null?"":v).replace(/[&<>"']/g, function(c){ return ENT[c]; }); }
+var esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ENT[c]);
+var S = {tab:"status", online:null, st:null, cfg:null, schema:null, devs:null,
+         editing:null, learn:null, fails:0, ota:false, tick:0};
 
-var S = { tab:"status", online:null, st:null, cfg:null, schema:null, devs:null,
-          editing:null, learn:null, learnFails:0, ota:false, tick:0 };
-
-/* ---------------------------------------------------------------- helpers */
+// formatting
 function dur(ms){
-  if (ms==null || ms>=NEVER) return "never";
+  if (ms == null || ms >= NEVER) return "never";
   var s = Math.floor(ms/1000);
   if (s < 60) return s + "s";
   var m = Math.floor(s/60); s %= 60;
@@ -355,43 +315,39 @@ function dur(ms){
   if (h < 24) return h + "h " + m + "m";
   return Math.floor(h/24) + "d " + (h%24) + "h";
 }
-function ago(ms){
-  if (ms==null || ms>=NEVER) return "never";
-  if (ms < 2000) return "just now";
-  return dur(ms) + " ago";
-}
+var ago = ms => (ms == null || ms >= NEVER) ? "never" : ms < 2000 ? "just now" : dur(ms) + " ago";
+var pad = n => ("0" + n).slice(-2);
 function clock(ms){
-  var s = Math.floor(ms/1000), h = Math.floor(s/3600), m = Math.floor(s/60)%60;
-  return h + ":" + ("0"+m).slice(-2) + ":" + ("0"+(s%60)).slice(-2);
+  var s = Math.floor(ms/1000);
+  return Math.floor(s/3600) + ":" + pad(Math.floor(s/60) % 60) + ":" + pad(s % 60);
 }
-function bytes(n){ return n==null ? "?" : (n>=1024 ? (n/1024).toFixed(1) + " KB" : n + " B"); }
-function sig(rssi){
-  var n = rssi==null||rssi===0 ? 0 : rssi>-60 ? 4 : rssi>-70 ? 3 : rssi>-80 ? 2 : 1;
-  var h = "";
-  for (var i=1;i<=4;i++) h += '<i class="' + (i<=n?"f":"") + '"></i>';
-  return '<span class="sig">' + h + "</span>";
+var bytes = n => n == null ? "?" : n >= 1024 ? (n/1024).toFixed(1) + " KB" : n + " B";
+function sig(r){
+  var n = !r ? 0 : r > -60 ? 4 : r > -70 ? 3 : r > -80 ? 2 : 1, h = "";
+  for (var i = 1; i <= 4; i++) h += `<i class="${i <= n ? "f" : ""}"></i>`;
+  return `<span class="sig">${h}</span>`;
 }
-function kv(pairs){
-  return pairs.map(function(p){
-    return '<div class="k">' + esc(p[0]) + '</div><div class="v">' + p[1] + "</div>";
-  }).join("");
-}
+var rssi = r => r ? sig(r) + esc(r) + " dBm" : "&mdash;";
+var kv = rows => rows.map(r => `<div class="k">${esc(r[0])}</div><div class="v">${r[1]}</div>`).join("");
+var chip = (text, cls) => `<span class="chip ${cls || ""}">${esc(text)}</span>`;
+
+// feedback
 function toast(msg, kind){
   var d = document.createElement("div");
-  d.className = "toast " + (kind||"");
+  d.className = "toast " + (kind || "");
   d.textContent = msg;
   $("toasts").appendChild(d);
-  setTimeout(function(){ d.style.opacity = "0"; setTimeout(function(){ d.remove(); }, 320); },
-             kind==="err" ? 5000 : 2800);
+  setTimeout(() => { d.style.opacity = "0"; setTimeout(() => d.remove(), 320); },
+             kind === "err" ? 5000 : 2800);
 }
-function fail(e){ toast(e && e.message ? e.message : "the device did not answer", "err"); }
-function busy(btn, on, text){
-  if (!btn) return;
-  if (on) { btn.dataset.lbl = btn.textContent; btn.textContent = text || "working"; btn.disabled = true; }
-  else { if (btn.dataset.lbl) btn.textContent = btn.dataset.lbl; btn.disabled = false; }
+var fail = e => toast(e && e.message ? e.message : "the device did not answer", "err");
+function busy(b, yes, text){
+  if (!b) return;
+  if (yes) { b.dataset.lbl = b.textContent; b.textContent = text; b.disabled = true; }
+  else { if (b.dataset.lbl) b.textContent = b.dataset.lbl; b.disabled = false; }
 }
 
-/* -------------------------------------------------------------- transport */
+// transport
 function setOnline(v){
   if (S.online === v) return;
   S.online = v;
@@ -399,97 +355,77 @@ function setOnline(v){
   $("conntxt").textContent = v ? "live" : "unreachable";
   $("offline").style.display = v ? "none" : "block";
 }
-function req(path, opts){
-  opts = opts || {};
-  return fetch(path, { method: opts.method || "GET", headers: opts.headers, body: opts.body,
-                       cache: "no-store" })
-    .then(function(r){
-      return r.text().then(function(t){
-        setOnline(true);
-        if (opts.raw) {
-          if (!r.ok) throw new Error("HTTP " + r.status);
-          return t;
-        }
-        var j = null;
-        try { j = t ? JSON.parse(t) : {}; } catch (e) { throw new Error("bad reply from the device"); }
-        if (!r.ok || (j && j.ok === false)) throw new Error((j && j.error) || ("HTTP " + r.status));
-        return j;
-      });
-    }, function(){ setOnline(false); throw new Error("device unreachable"); });
+function req(path, o){
+  o = o || {};
+  return fetch(path, {method:o.method || "GET", headers:o.headers, body:o.body, cache:"no-store"})
+    .then(r => r.text().then(t => {
+      setOnline(true);
+      if (o.raw) { if (!r.ok) throw new Error("HTTP " + r.status); return t; }
+      var j;
+      try { j = t ? JSON.parse(t) : {}; } catch (e) { throw new Error("unreadable reply from the device"); }
+      if (!r.ok || (j && j.ok === false)) throw new Error((j && j.error) || ("HTTP " + r.status));
+      return j;
+    }), () => { setOnline(false); throw new Error("device unreachable"); });
 }
-function get(path, raw){ return req(path, { raw: raw }); }
+var get = (path, raw) => req(path, {raw:raw});
 function post(path, data){
-  var body = "";
-  if (data) body = Object.keys(data).map(function(k){
-    return encodeURIComponent(k) + "=" + encodeURIComponent(data[k]);
-  }).join("&");
-  return req(path, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" },
-                     body: body });
+  var body = data ? Object.keys(data).map(k =>
+    encodeURIComponent(k) + "=" + encodeURIComponent(data[k])).join("&") : "";
+  return req(path, {method:"POST", body:body,
+                    headers:{"Content-Type":"application/x-www-form-urlencoded"}});
 }
 
-/* ------------------------------------------------------------ status poll */
+// status
 var pollTimer = null;
 function schedule(){
   clearTimeout(pollTimer);
-  if (S.ota) return;
-  pollTimer = setTimeout(poll, document.hidden ? 5000 : 1000);
+  if (!S.ota) pollTimer = setTimeout(poll, document.hidden ? 5000 : 1000);
 }
 function poll(){
-  get("/api/status").then(function(s){
+  get("/api/status").then(s => {
     S.st = s;
     renderStatus();
     if (S.tab === "devices" && S.editing === null && s.devices) { S.devs = s.devices; renderDevices(); }
     if (S.tab === "status" && (S.tick++ % 3) === 0) loadLogs();
-  }).catch(function(){}).then(schedule);
+  }).catch(() => {}).then(schedule);
 }
-function loadLogs(){
-  get("/api/logs").then(function(j){ renderLogs(j.lines || []); }).catch(function(){});
-}
+var loadLogs = () => get("/api/logs").then(j => renderLogs(j.lines || [])).catch(() => {});
 
-/* ----------------------------------------------------------- status view */
 function renderStatus(){
   var s = S.st; if (!s) return;
-  var pc = s.pc||{}, net = s.net||{}, sc = s.scan||{}, pu = s.pulse||{}, lr = s.learn||{};
+  var pc = s.pc || {}, net = s.net || {}, sc = s.scan || {}, pu = s.pulse || {}, ln = s.learn || {};
   var state = pc.state || "unknown";
-
   var b = $("badge");
-  b.className = "badge " + (["on","off","sleep","unknown"].indexOf(state) < 0 ? "unknown" : state);
+  b.className = "badge " + (["on","off","sleep"].indexOf(state) < 0 ? "unknown" : state);
   b.textContent = state.toUpperCase();
   $("badgesub").textContent =
-    (pc.mode === "force_off" ? "sense forced to off" : "reading the PWR-LED") + " · " +
-    (pc.ready ? "ready to trigger" : "not ready to trigger") +
-    (lr.active ? " · learning" : "");
+    (pc.mode === "force_off" ? "sense forced to off" : "reading the PWR-LED") + " - " +
+    (pc.ready ? "ready to trigger" : "not ready to trigger") + (ln.active ? " - learning" : "");
 
-  var duty = pc.duty==null ? 0 : pc.duty, spread = pc.spread==null ? 0 : pc.spread;
+  var duty = pc.duty || 0, spread = pc.spread || 0;
   $("dutyb").style.width = duty + "%";
   $("dutyv").textContent = duty + "%";
   $("sprb").style.width = spread + "%";
   $("sprv").textContent = spread + "%";
 
-  var when = sc.last_reason_ms==null ? NEVER : sc.last_reason_ms;
-  if (sc.last_reason) {
-    $("trig").innerHTML = '<span class="chip ' + (sc.last_reason==="fire" ? "ok" : "warn") + '">' +
-      esc(sc.last_reason) + "</span> " + esc(sc.last_reason_text || "") +
-      '<div class="hint">' + esc(ago(when)) + "</div>";
-  } else {
-    $("trig").innerHTML = '<span class="sub">nothing has been evaluated yet</span>';
-  }
+  $("trig").innerHTML = sc.last_reason
+    ? chip(sc.last_reason, sc.last_reason === "fire" ? "ok" : "warn") + " " +
+      esc(sc.last_reason_text || "") + `<div class="hint">${esc(ago(sc.last_reason_ms))}</div>`
+    : '<span class="sub">nothing has been evaluated yet</span>';
   $("scankv").innerHTML = kv([
-    ["Scanner", sc.scanning ? '<span class="chip ok">scanning</span>'
-              : sc.paused ? '<span class="chip">paused</span>'
-              : '<span class="chip bad">stopped</span>'],
-    ["Adverts seen", (sc.adverts==null?0:sc.adverts) + " <span class=\"sub\">(last " + esc(ago(sc.last_advert_ms)) + ")</span>"],
-    ["Presses", (pu.count==null?0:pu.count) + (pu.active ? ' <span class="chip warn">pressing</span>' : "")],
+    ["Scanner", sc.scanning ? chip("scanning","ok") : sc.paused ? chip("paused") : chip("stopped","bad")],
+    ["Adverts seen", (sc.adverts || 0) + ` <span class="sub">(last ${esc(ago(sc.last_advert_ms))})</span>`],
+    ["Presses", (pu.count || 0) + (pu.active ? " " + chip("pressing","warn") : "")],
     ["Last press", esc(ago(pu.ms_since_last))],
-    ["PC off for", esc(pc.ms_since_off===undefined ? "never" : dur(pc.ms_since_off))]
+    ["PC off for", esc(dur(pc.ms_since_off))]
   ]);
 
   var mode = net.mode || "?";
   $("netkv").innerHTML = kv([
-    ["Mode", '<span class="chip ' + (mode==="station" ? "ok" : mode==="connecting" ? "warn" : "") + '">' + esc(mode) + "</span>"],
+    ["Mode", chip(mode, mode === "station" ? "ok" : mode === "connecting" ? "warn" : "")],
     ["Network", esc(net.ssid || "none")],
     ["Address", esc(net.ip || "none")],
-    ["Signal", net.rssi ? sig(net.rssi) + esc(net.rssi) + " dBm" : "&mdash;"],
+    ["Signal", rssi(net.rssi)],
     ["Hotspot", net.ap_active ? esc(net.ap_ssid || "up") + " (up)" : "off"],
     ["Hostname", esc((net.hostname || "pcpower") + ".local")]
   ]);
@@ -497,315 +433,254 @@ function renderStatus(){
     ["Uptime", esc(dur(s.uptime_ms))],
     ["Free heap", esc(bytes(s.heap))],
     ["Firmware", esc(s.version || "?")],
-    ["Known devices", String((s.devices||[]).length)]
+    ["Known devices", String((s.devices || []).length)]
   ]);
-  $("hdrsub").textContent = (net.ip || (net.hostname ? net.hostname + ".local" : "")) +
-    (s.version ? "  v" + s.version : "");
+  $("hdrsub").textContent = (net.ip || (net.hostname || "") + ".local") +
+                            (s.version ? "  v" + s.version : "");
+  $("wnow").innerHTML = mode === "station"
+    ? `Connected to <strong>${esc(net.ssid || "?")}</strong> at ${esc(net.ip || "?")}, ${rssi(net.rssi)}`
+    : mode === "connecting" ? "Connecting to " + esc(net.ssid || "a network")
+    : "Hotspot mode" + (net.ap_ssid ? `, <strong>${esc(net.ap_ssid)}</strong>` : "") +
+      (net.ip ? " at " + esc(net.ip) : "");
 }
 function renderLogs(lines){
   var last = lines.slice(-10).reverse();
   $("loglist").innerHTML = last.length
-    ? last.map(function(l){
-        return '<div><span class="t">' + esc(clock(l.t||0)) + "</span><span>" + esc(l.m||"") + "</span></div>";
-      }).join("")
+    ? last.map(l => `<div><span class="t">${esc(clock(l.t || 0))}</span><span>${esc(l.m || "")}</span></div>`).join("")
     : '<div class="sub">the log is empty</div>';
 }
 function setTicks(){
-  var c = S.cfg; if (!c) return;
-  if (c.on_duty_pct != null) $("tk_on").style.left = c.on_duty_pct + "%";
-  if (c.off_duty_pct != null) $("tk_off").style.left = c.off_duty_pct + "%";
-  if (c.spread_pct != null) $("tk_sp").style.left = c.spread_pct + "%";
-  if (c.on_duty_pct != null) {
-    $("dutyh").textContent = "Marks: off at or below " + c.off_duty_pct + "%, on at or above " +
-      c.on_duty_pct + "%.";
-  }
-  if (c.spread_pct != null) {
-    $("sprh").textContent = "Between those thresholds, more spread than " + c.spread_pct +
-      "% reads as a pulsing LED, so asleep.";
-  }
+  var c = S.cfg; if (!c || c.on_duty_pct == null) return;
+  $("tk_on").style.left = c.on_duty_pct + "%";
+  $("tk_off").style.left = c.off_duty_pct + "%";
+  $("tk_sp").style.left = c.spread_pct + "%";
+  $("dutyh").textContent = `Marks: off at or below ${c.off_duty_pct}%, on at or above ${c.on_duty_pct}%.`;
+  $("sprh").textContent = `Between those thresholds, more spread than ${c.spread_pct}% reads as a pulsing LED, so asleep.`;
 }
 
-/* ---------------------------------------------------------- devices view */
-var ADDR_TYPE = { 0:"public", 1:"random", 2:"public identity", 3:"random identity" };
-function loadDevices(){
-  get("/api/devices").then(function(j){ S.devs = j.devices || []; renderDevices(); })
-    .catch(function(e){ $("devlist").innerHTML = '<div class="sub">could not read the device list</div>'; fail(e); });
-}
+// devices
+var ADDR_TYPE = {0:"public", 1:"random"};
+var loadDevices = () => get("/api/devices")
+  .then(j => { S.devs = j.devices || []; renderDevices(); })
+  .catch(e => { $("devlist").innerHTML = '<div class="sub">could not read the device list</div>'; fail(e); });
+
 function renderDevices(){
-  var list = S.devs;
-  if (!list) return;
+  var list = S.devs; if (!list) return;
   if (!list.length) {
     $("devlist").innerHTML = '<div class="sub">No devices yet. Use Learn above, or add one by address.</div>';
     return;
   }
-  $("devlist").innerHTML = list.map(function(d, i){
-    if (S.editing === i) {
-      return '<div class="dev"><label for="ren' + i + '">Rename</label>' +
-        '<input id="ren' + i + '" value="' + esc(d.label) + '" maxlength="31">' +
-        '<div class="row mt"><button class="btn pri" data-act="rensave" data-i="' + i + '">Save</button>' +
-        '<button class="btn" data-act="rencancel" data-i="' + i + '">Cancel</button></div></div>';
-    }
-    var seen = d.seen ? '<span class="chip ok">in range</span>' : "";
-    return '<div class="dev">' +
-      '<div class="top"><div><div class="nm">' + esc(d.label || "(no label)") + "</div>" +
-        '<div class="mono sub">' + esc(d.addr) + "</div></div>" +
-      "<div>" + seen + "</div></div>" +
-      '<div class="meta">' + esc(ADDR_TYPE[d.type] || ("type " + d.type)) + " &middot; seen " + esc(ago(d.last_seen_ms)) +
-        " &middot; " + (d.rssi ? sig(d.rssi) + esc(d.rssi) + " dBm" : "no signal") +
-        " &middot; " + (d.triggers||0) + " trigger" + ((d.triggers||0)===1 ? "" : "s") + "</div>" +
-      '<div class="row">' +
-        '<label class="sw"><input type="checkbox" data-act="toggle" data-i="' + i + '"' +
-          (d.enabled ? " checked" : "") + "> Enabled</label>" +
-        '<button class="btn sm" data-act="rename" data-i="' + i + '">Rename</button>' +
-        '<button class="btn sm danger" data-act="del" data-i="' + i + '">Delete</button>' +
-      "</div></div>";
+  $("devlist").innerHTML = list.map((d, i) => {
+    if (S.editing === i) return `<div class="dev"><label for="ren${i}">Rename</label>
+<input id="ren${i}" value="${esc(d.label)}" maxlength="31">
+<div class="row"><button class="btn pri" data-act="rensave" data-i="${i}">Save</button>
+<button class="btn" data-act="rencancel" data-i="${i}">Cancel</button></div></div>`;
+    var t = (d.triggers || 0);
+    return `<div class="dev">
+<div class="top"><div><div class="nm">${esc(d.label || "(no label)")}</div>
+<div class="mono sub">${esc(d.addr)}</div></div>
+<div>${d.seen ? chip("in range","ok") : ""}</div></div>
+<div class="meta">${esc(ADDR_TYPE[d.type] || "type " + d.type)} &middot; seen ${esc(ago(d.last_seen_ms))} &middot; ${rssi(d.rssi)} &middot; ${t} trigger${t === 1 ? "" : "s"}</div>
+<div class="row"><label class="sw"><input type="checkbox" data-act="toggle" data-i="${i}"${d.enabled ? " checked" : ""}> Enabled</label>
+<button class="btn sm" data-act="rename" data-i="${i}">Rename</button>
+<button class="btn sm danger" data-act="del" data-i="${i}">Delete</button></div></div>`;
   }).join("");
 }
 function devAction(e){
   var t = e.target.closest("[data-act]"); if (!t) return;
-  var i = parseInt(t.dataset.i, 10), d = (S.devs||[])[i];
-  var act = t.dataset.act;
-  if (act === "toggle" && d) {
-    post("/api/devices/update", { index:i, label:d.label, enabled: t.checked ? 1 : 0 })
-      .then(function(){ d.enabled = t.checked; toast(t.checked ? "device enabled" : "device disabled"); })
-      .catch(function(err){ t.checked = !!d.enabled; fail(err); });
+  var i = +t.dataset.i, d = (S.devs || [])[i], act = t.dataset.act;
+  if (!d) return;
+  if (act === "toggle") {
+    post("/api/devices/update", {index:i, label:d.label, enabled:t.checked ? 1 : 0})
+      .then(() => { d.enabled = t.checked; toast(t.checked ? "device enabled" : "device disabled"); })
+      .catch(err => { t.checked = !!d.enabled; fail(err); });
   } else if (act === "rename") {
     S.editing = i; renderDevices();
-    var f = $("ren" + i); if (f) { f.focus(); f.select(); }
+    var f = $("ren" + i); f.focus(); f.select();
   } else if (act === "rencancel") {
     S.editing = null; renderDevices();
-  } else if (act === "rensave" && d) {
+  } else if (act === "rensave") {
     var v = ($("ren" + i).value || "").trim();
-    if (!v) { toast("a label cannot be empty", "err"); return; }
-    post("/api/devices/update", { index:i, label:v, enabled: d.enabled ? 1 : 0 })
-      .then(function(){ S.editing = null; toast("renamed"); loadDevices(); }).catch(fail);
-  } else if (act === "del" && d) {
-    if (!confirm('Delete "' + (d.label||d.addr) + '"?\n\nIt will no longer wake the PC. You can learn it again later.')) return;
-    post("/api/devices/delete", { index:i })
-      .then(function(){ toast("device deleted"); loadDevices(); }).catch(fail);
+    if (!v) return toast("a label cannot be empty", "err");
+    post("/api/devices/update", {index:i, label:v, enabled:d.enabled ? 1 : 0})
+      .then(() => { S.editing = null; toast("renamed"); loadDevices(); }).catch(fail);
+  } else if (act === "del") {
+    if (!confirm(`Delete "${d.label || d.addr}"?\n\nIt will no longer wake the PC. You can learn it again later.`)) return;
+    post("/api/devices/delete", {index:i}).then(() => { toast("device deleted"); loadDevices(); }).catch(fail);
   }
 }
+function manualAdd(){
+  var a = ($("ma").value || "").trim().toUpperCase().replace(/-/g, ":");
+  if (!/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(a)) return toast("enter an address like AA:BB:CC:DD:EE:FF", "err");
+  var label = ($("ml").value || "").trim() || "Device";
+  busy($("madd"), true, "adding");
+  post("/api/devices", {addr:a, type:$("mt").value, label:label})
+    .then(() => { toast("added " + label); $("ma").value = ""; $("ml").value = ""; loadDevices(); })
+    .catch(fail).then(() => busy($("madd"), false));
+}
 
-/* ------------------------------------------------------------ learn mode */
+// learning
+var learnTimer = null;
 function learnStart(){
   busy($("learnbtn"), true, "starting");
-  post("/api/learn/start", { seconds:5 }).then(function(){
-    S.learn = { active:true, remaining_ms:5000, candidates:[] };
-    S.learnFails = 0;
+  post("/api/learn/start", {seconds:5}).then(() => {
+    S.learn = {active:true, remaining_ms:5000, candidates:[]};
+    S.fails = 0;
     renderLearn();
     pollLearn();
-  }).catch(fail).then(function(){ busy($("learnbtn"), false); });
+  }).catch(fail).then(() => busy($("learnbtn"), false));
 }
-var learnTimer = null;
 function pollLearn(){
   clearTimeout(learnTimer);
-  get("/api/learn/status").then(function(j){
-    S.learnFails = 0;
+  get("/api/learn/status").then(j => {
+    S.fails = 0;
     S.learn = j;
     renderLearn();
     if (j.active) learnTimer = setTimeout(pollLearn, 500);
-    else if (!(j.candidates||[]).length) toast("nothing was heard - switch the controller on during the countdown", "warn");
-  }).catch(function(){
-    if (++S.learnFails < 6) learnTimer = setTimeout(pollLearn, 1000);
+    else if (!(j.candidates || []).length)
+      toast("nothing was heard - switch the controller on during the countdown", "warn");
+  }).catch(() => {
+    if (++S.fails < 6) learnTimer = setTimeout(pollLearn, 1000);
     else { if (S.learn) S.learn.active = false; renderLearn(); }
   });
 }
 function renderLearn(){
   var l = S.learn;
-  if (!l) { $("learnbox").innerHTML = ""; return; }
-  var head = "";
-  if (l.active) {
-    var left = Math.max(0, Math.ceil((l.remaining_ms||0)/1000));
-    head = '<div class="warnbox">Listening &mdash; ' + left + "s left. Switch the controller on now.</div>" +
-           '<button class="btn wide mt" data-lact="cancel">Cancel</button>';
-  } else {
-    head = '<div class="hrow mt"><h2 class="h">Heard nearby</h2>' +
-           '<button class="btn sm" data-lact="dismiss">Done</button></div>';
-  }
-  var cands = (l.candidates||[]).slice().sort(function(a,b){ return (b.rssi||-127) - (a.rssi||-127); });
-  var body = cands.map(function(c, i){
-    var nm = c.name || "(no name)";
-    var meta = '<div class="mono sub">' + esc(c.addr) + "</div>" +
-      '<div class="meta sub">' + esc(c.kind || "?") + " &middot; " + (c.hits||0) + " advert" +
-      ((c.hits||0)===1 ? "" : "s") + "</div>";
-    if (c.learnable) {
-      return '<div class="cand">' +
-        '<div class="top"><div class="nm">' + esc(nm) + "</div><div class=\"sub nowrap\">" +
-          sig(c.rssi) + esc(c.rssi) + " dBm</div></div>" + meta +
-        '<div class="row mt"><input class="grow" id="cl' + i + '" value="' + esc(nm==="(no name)" ? "" : nm) +
-          '" placeholder="Label" maxlength="31">' +
-          '<button class="btn pri" data-lact="accept" data-i="' + i + '">Add</button></div></div>';
-    }
-    return '<div class="cand no">' +
-      '<div class="top"><div class="nm">' + esc(nm) + "</div><div class=\"sub nowrap\">" +
-        sig(c.rssi) + esc(c.rssi) + " dBm</div></div>" + meta +
-      '<div class="reason">Cannot be learned: ' + esc(c.reason || "this address rotates") + "</div></div>";
+  if (!l) return void ($("learnbox").innerHTML = "");
+  var head = l.active
+    ? `<div class="warnbox">Listening &mdash; ${Math.max(0, Math.ceil((l.remaining_ms || 0)/1000))}s left. Switch the controller on now.</div>
+<button class="btn wide mt" data-lact="cancel">Cancel</button>`
+    : `<div class="hrow mt"><h2 class="h">Heard nearby</h2><button class="btn sm" data-lact="dismiss">Done</button></div>`;
+  // Keep each candidate's own index: /api/learn/accept indexes the firmware's list, not the sorted one.
+  var cands = (l.candidates || []).map((c, i) => ({c:c, i:i}))
+    .sort((a, b) => (b.c.rssi || -127) - (a.c.rssi || -127));
+  var body = cands.map(e => {
+    var c = e.c, i = e.i, nm = c.name || "(no name)";
+    var top = `<div class="top"><div class="nm">${esc(nm)}</div><div class="sub nowrap">${rssi(c.rssi)}</div></div>
+<div class="mono sub">${esc(c.addr)}</div>
+<div class="meta">${esc(c.kind || "?")} &middot; ${c.hits || 0} advert${(c.hits || 0) === 1 ? "" : "s"}</div>`;
+    return c.learnable
+      ? `<div class="cand">${top}<div class="row mt"><input class="grow" id="cl${i}" maxlength="31" placeholder="Label" value="${esc(c.name || "")}">
+<button class="btn pri" data-lact="accept" data-i="${i}">Add</button></div></div>`
+      : `<div class="cand no">${top}<div class="reason">Cannot be learned: ${esc(c.reason || "this address rotates")}</div></div>`;
   }).join("");
-  if (!cands.length && !l.active) body = '<div class="sub">Nothing was heard.</div>';
-  $("learnbox").innerHTML = head + body;
+  $("learnbox").innerHTML = head + (body || (l.active ? "" : '<div class="sub">Nothing was heard.</div>'));
 }
 function learnAction(e){
   var t = e.target.closest("[data-lact]"); if (!t) return;
   var act = t.dataset.lact;
   if (act === "cancel") {
     clearTimeout(learnTimer);
-    post("/api/learn/cancel").then(function(){ S.learn = null; renderLearn(); toast("learning cancelled"); })
-      .catch(fail);
+    post("/api/learn/cancel").then(() => { S.learn = null; renderLearn(); toast("learning cancelled"); }).catch(fail);
   } else if (act === "dismiss") {
     S.learn = null; renderLearn();
   } else if (act === "accept") {
-    var i = parseInt(t.dataset.i, 10);
-    var cands = (S.learn.candidates||[]).slice().sort(function(a,b){ return (b.rssi||-127) - (a.rssi||-127); });
-    var c = cands[i]; if (!c) return;
+    var i = +t.dataset.i, c = (S.learn.candidates || [])[i]; if (!c) return;
     var label = ($("cl" + i).value || "").trim() || c.name || c.addr;
-    var real = (S.learn.candidates||[]).indexOf(c);
     busy(t, true, "adding");
-    post("/api/learn/accept", { index: real < 0 ? i : real, label: label })
-      .then(function(){ toast("added " + label); S.learn = null; renderLearn(); loadDevices(); })
-      .catch(fail).then(function(){ busy(t, false); });
+    post("/api/learn/accept", {index:i, label:label})
+      .then(() => { toast("added " + label); S.learn = null; renderLearn(); loadDevices(); })
+      .catch(fail).then(() => busy(t, false));
   }
-}
-function manualAdd(){
-  var a = ($("ma").value||"").trim().toUpperCase().replace(/-/g, ":");
-  if (!/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(a)) { toast("enter an address like AA:BB:CC:DD:EE:FF", "err"); return; }
-  var label = ($("ml").value||"").trim() || "Device";
-  busy($("madd"), true, "adding");
-  post("/api/devices", { addr:a, type:$("mt").value, label:label })
-    .then(function(){ toast("added " + label); $("ma").value = ""; $("ml").value = ""; loadDevices(); })
-    .catch(fail).then(function(){ busy($("madd"), false); });
 }
 
-/* --------------------------------------------------------- settings view */
-function loadSettings(){
-  Promise.all([get("/api/config/schema"), get("/api/config")]).then(function(r){
-    S.schema = r[0]; S.cfg = r[1];
-    renderSettings(); setTicks();
-  }).catch(function(e){
-    $("setform").innerHTML = '<div class="card sub">could not read the settings from the device</div>';
-    fail(e);
-  });
-}
-function defOf(key){
-  var a = S.schema || [];
-  for (var i=0;i<a.length;i++) if (a[i].key === key) return a[i];
-  return null;
-}
+// settings, rendered from the firmware's own schema
+var loadSettings = () => Promise.all([get("/api/config/schema"), get("/api/config")])
+  .then(r => { S.schema = r[0]; S.cfg = r[1]; renderSettings(); setTicks(); })
+  .catch(e => { $("setform").innerHTML = '<div class="card sub">could not read the settings</div>'; fail(e); });
+
 function control(d, val){
-  var id = "f_" + d.key, k = ' data-k="' + d.key + '" id="' + id + '"';
-  if (d.type === "bool")
-    return '<input type="checkbox"' + k + (Number(val) ? " checked" : "") + ">";
-  if (d.type === "enum") {
-    var opts = String(d.options||"").split("|").map(function(o, i){
-      return '<option value="' + i + '"' + (Number(val)===i ? " selected" : "") + ">" + esc(o) + "</option>";
-    }).join("");
-    return "<select" + k + ">" + opts + "</select>";
-  }
-  if (d.type === "int")
-    return '<input type="number" inputmode="numeric" min="' + d.min + '" max="' + d.max +
-           '" value="' + esc(val) + '"' + k + ">";
-  return '<input type="text" maxlength="' + d.max + '" value="' + esc(val) + '"' + k +
-         ' autocapitalize="none" autocomplete="off" spellcheck="false">';
+  var a = ` data-k="${d.key}" id="f_${d.key}"`;
+  if (d.type === "bool") return `<input type="checkbox"${a}${+val ? " checked" : ""}>`;
+  if (d.type === "enum") return `<select${a}>` + String(d.options || "").split("|").map((o, i) =>
+    `<option value="${i}"${+val === i ? " selected" : ""}>${esc(o)}</option>`).join("") + "</select>";
+  if (d.type === "int") return `<input type="number" inputmode="numeric" min="${d.min}" max="${d.max}" value="${esc(val)}"${a}>`;
+  return `<input type="text" maxlength="${d.max}" value="${esc(val)}"${a} autocapitalize="none" autocomplete="off">`;
 }
 function renderSettings(){
-  var groups = [], byGroup = {};
-  (S.schema||[]).forEach(function(d){
-    if (!byGroup[d.group]) { byGroup[d.group] = []; groups.push(d.group); }
+  var order = [], byGroup = {};
+  (S.schema || []).forEach(d => {
+    if (!byGroup[d.group]) { byGroup[d.group] = []; order.push(d.group); }
     byGroup[d.group].push(d);
   });
-  $("setform").innerHTML = groups.map(function(g){
-    return '<div class="card"><h2 class="h">' + esc(g) + "</h2>" + byGroup[g].map(function(d){
-      var val = S.cfg[d.key];
-      var range = d.type === "int" ? d.min + " to " + d.max
-                : d.type === "str" ? d.min + " to " + d.max + " chars" : "";
-      var lbl = '<label for="f_' + d.key + '">' + esc(d.label) +
-        (d.unit ? ' <span class="unit">(' + esc(d.unit) + ")</span>" : "") + "</label>";
+  $("setform").innerHTML = order.map(g => `<div class="card"><h2 class="h">${esc(g)}</h2>` +
+    byGroup[g].map(d => {
+      var lbl = `<label for="f_${d.key}">${esc(d.label)}${d.unit ? ` <span class="unit">(${esc(d.unit)})</span>` : ""}</label>`;
+      var range = d.type === "int" ? `${d.min} to ${d.max}`
+                : d.type === "str" ? `${d.min} to ${d.max} chars` : "";
       var head = d.type === "bool"
-        ? '<div class="lbl">' + lbl + control(d, val) + "</div>"
-        : '<div class="lbl">' + lbl + '<span class="rng">' + esc(range) + "</span></div>" + control(d, val);
-      return '<div class="f' + (d.type==="bool" ? " bool" : "") + '" data-f="' + d.key + '">' + head +
-        '<p class="fhelp">' + esc(d.help) + "</p></div>";
-    }).join("") + "</div>";
-  }).join("");
+        ? `<div class="lbl">${lbl}${control(d, S.cfg[d.key])}</div>`
+        : `<div class="lbl">${lbl}<span class="rng">${range}</span></div>${control(d, S.cfg[d.key])}`;
+      return `<div class="f${d.type === "bool" ? " bool" : ""}">${head}<p class="fhelp">${esc(d.help)}</p></div>`;
+    }).join("") + "</div>").join("");
   $("savebar").style.display = "flex";
   $("defcard").style.display = "block";
   markChanges();
 }
-function readCtl(el, d){
-  if (d.type === "bool") return el.checked ? 1 : 0;
-  if (d.type === "str") return el.value;
-  return el.value === "" ? "" : Number(el.value);
-}
-function changedKeys(){
-  var out = {};
-  (S.schema||[]).forEach(function(d){
+var readCtl = (el, d) => d.type === "bool" ? (el.checked ? 1 : 0)
+                       : d.type === "str" ? el.value
+                       : el.value === "" ? "" : Number(el.value);
+function eachField(fn){
+  (S.schema || []).forEach(d => {
     var el = $("f_" + d.key); if (!el) return;
     var v = readCtl(el, d);
-    if (v !== "" && String(v) !== String(S.cfg[d.key])) out[d.key] = v;
+    fn(d, el, v, v !== "" && String(v) !== String(S.cfg[d.key]));
   });
-  return out;
 }
 function markChanges(){
   var n = 0;
-  (S.schema||[]).forEach(function(d){
-    var el = $("f_" + d.key); if (!el) return;
-    var v = readCtl(el, d);
-    var ch = v !== "" && String(v) !== String(S.cfg[d.key]);
-    if (ch) n++;
-    var w = el.closest(".f"); if (w) w.classList.toggle("chg", ch);
+  eachField((d, el, v, changed) => {
+    if (changed) n++;
+    el.closest(".f").classList.toggle("chg", changed);
   });
-  $("savest").textContent = n ? n + " change" + (n===1 ? "" : "s") + " not saved" : "no changes";
-  $("savebtn").disabled = n === 0;
+  $("savest").textContent = n ? n + " change" + (n === 1 ? "" : "s") + " not saved" : "no changes";
+  $("savebtn").disabled = !n;
   $("savebtn").textContent = n ? "Save " + n : "Save";
 }
 function saveSettings(){
-  var ch = changedKeys(), keys = Object.keys(ch);
+  var body = {};
+  eachField((d, el, v, changed) => { if (changed) body[d.key] = v; });
+  var keys = Object.keys(body);
   if (!keys.length) return;
   busy($("savebtn"), true, "saving");
-  post("/api/config", ch).then(function(j){
+  post("/api/config", body).then(j => {
     var cl = j.clamped || [];
-    if (cl.length) toast("saved, but clamped to range: " + cl.join(", "), "warn");
-    else toast("saved " + keys.length + " setting" + (keys.length===1 ? "" : "s"));
+    toast(cl.length ? "saved, but clamped to range: " + cl.join(", ")
+                    : "saved " + keys.length + " setting" + (keys.length === 1 ? "" : "s"),
+          cl.length ? "warn" : "");
     return get("/api/config");
-  }).then(function(c){
-    S.cfg = c; renderSettings(); setTicks();
-  }).catch(fail).then(function(){ busy($("savebtn"), false); markChanges(); });
+  }).then(c => { S.cfg = c; renderSettings(); setTicks(); })
+    .catch(fail).then(() => { busy($("savebtn"), false); markChanges(); });
 }
 function restoreDefaults(){
   if (!confirm("Restore every setting to its factory default?\n\nLearned devices and WiFi credentials are kept.")) return;
   busy($("defbtn"), true, "restoring");
-  post("/api/config/defaults").then(function(){
-    toast("defaults restored");
-    return Promise.all([get("/api/config/schema"), get("/api/config")]);
-  }).then(function(r){
-    S.schema = r[0]; S.cfg = r[1]; renderSettings(); setTicks();
-  }).catch(fail).then(function(){ busy($("defbtn"), false); });
+  post("/api/config/defaults")
+    .then(() => { toast("defaults restored"); return get("/api/config"); })
+    .then(c => { S.cfg = c; renderSettings(); setTicks(); })
+    .catch(fail).then(() => busy($("defbtn"), false));
 }
 
-/* ----------------------------------------------------------- system view */
+// system
 function wifiScan(){
   busy($("wscan"), true, "scanning");
-  get("/api/wifi/scan").then(function(j){
-    var nets = (j.networks||[]).slice().sort(function(a,b){ return (b.rssi||-127) - (a.rssi||-127); });
+  get("/api/wifi/scan").then(j => {
     var seen = {};
-    nets = nets.filter(function(n){ if (!n.ssid || seen[n.ssid]) return false; seen[n.ssid] = 1; return true; });
-    $("wlist").innerHTML = nets.length ? nets.map(function(n){
-      return '<button class="net" data-ssid="' + esc(n.ssid) + '"><span>' + esc(n.ssid) + "</span>" +
-        '<span class="r">' + sig(n.rssi) + esc(n.rssi) + " dBm" +
-        (n.secure ? " &middot; secured" : " &middot; open") + "</span></button>";
-    }).join("") : '<div class="sub mt">no networks found</div>';
-  }).catch(fail).then(function(){ busy($("wscan"), false); });
+    var nets = (j.networks || []).slice()
+      .sort((a, b) => (b.rssi || -127) - (a.rssi || -127))
+      .filter(n => n.ssid && !seen[n.ssid] && (seen[n.ssid] = 1));
+    $("wlist").innerHTML = nets.length ? nets.map(n =>
+      `<button class="net" data-ssid="${esc(n.ssid)}"><span>${esc(n.ssid)}</span><span class="r">${rssi(n.rssi)} &middot; ${n.secure ? "secured" : "open"}</span></button>`).join("")
+      : '<div class="sub mt">no networks found</div>';
+  }).catch(fail).then(() => busy($("wscan"), false));
 }
 function wifiJoin(){
-  var ssid = ($("wssid").value||"").trim();
-  if (!ssid) { toast("enter a network name first", "err"); return; }
+  var ssid = ($("wssid").value || "").trim();
+  if (!ssid) return toast("enter a network name first", "err");
   busy($("wjoin"), true, "joining");
-  post("/api/wifi", { ssid: ssid, pass: $("wpass").value })
-    .then(function(j){ toast(j.note || ("joining " + ssid)); $("wpass").value = ""; })
-    .catch(fail).then(function(){ busy($("wjoin"), false); });
-}
-function wifiForget(){
-  if (!confirm("Forget the saved WiFi network?\n\nThe device will fall back to its own hotspot, and you will need to rejoin that to reach this page.")) return;
-  post("/api/wifi/forget").then(function(){ toast("WiFi credentials cleared"); }).catch(fail);
+  post("/api/wifi", {ssid:ssid, pass:$("wpass").value})
+    .then(j => { toast(j.note || "joining " + ssid); $("wpass").value = ""; })
+    .catch(fail).then(() => busy($("wjoin"), false));
 }
 function setProg(pct, text){
   $("otabar").style.width = pct + "%";
@@ -813,36 +688,39 @@ function setProg(pct, text){
 }
 function otaUpload(){
   var f = $("otafile").files[0];
-  if (!f) { toast("choose a .bin file first", "err"); return; }
-  if (!confirm("Upload " + f.name + " (" + bytes(f.size) + ") and reboot the device?\n\nDo not power it off until it comes back.")) return;
+  if (!f) return toast("choose a .bin file first", "err");
+  if (!confirm(`Upload ${f.name} (${bytes(f.size)}) and reboot the device?\n\nDo not power it off until it comes back.`)) return;
   var fd = new FormData();
   fd.append("update", f, f.name);
   var x = new XMLHttpRequest();
-  S.ota = true; clearTimeout(pollTimer);
+  S.ota = true;                     // stop polling: the device serves one request at a time
+  clearTimeout(pollTimer);
   busy($("otabtn"), true, "uploading");
   setProg(0, "starting");
-  x.upload.onprogress = function(e){
+  x.upload.onprogress = e => {
     if (!e.lengthComputable) return;
     var p = Math.round(e.loaded / e.total * 100);
     setProg(p, p < 100 ? "uploading " + p + "%" : "writing flash, do not power off");
   };
-  x.onload = function(){
+  x.onload = () => {
     var j = {};
-    try { j = JSON.parse(x.responseText || "{}"); } catch (err) {}
-    S.ota = false; busy($("otabtn"), false);
+    try { j = JSON.parse(x.responseText || "{}"); } catch (e) {}
+    S.ota = false;
+    busy($("otabtn"), false);
     if (x.status >= 200 && x.status < 300 && j.ok !== false) {
       setProg(100, "update accepted, the device is rebooting");
       toast("firmware uploaded, rebooting");
       setOnline(false);
       setTimeout(schedule, 4000);
     } else {
-      setProg(0, "failed: " + (j.error || ("HTTP " + x.status)));
+      setProg(0, "failed: " + (j.error || "HTTP " + x.status));
       toast(j.error || "the update was rejected", "err");
       schedule();
     }
   };
-  x.onerror = x.onabort = function(){
-    S.ota = false; busy($("otabtn"), false);
+  x.onerror = x.onabort = () => {
+    S.ota = false;
+    busy($("otabtn"), false);
     setProg(0, "the connection dropped during the upload");
     toast("upload failed", "err");
     schedule();
@@ -852,41 +730,110 @@ function otaUpload(){
 }
 function doExport(){
   busy($("expbtn"), true, "reading");
-  get("/api/config/export", true).then(function(t){
+  get("/api/config/export", true).then(t => {
     $("expbox").style.display = "block";
-    $("impbox").style.display = "none";
     $("exp").value = t;
-    try {
+    try {                           // a download is a bonus; the textarea is the reliable path
       var a = $("dl");
-      if (a.href && a.href.indexOf("blob:") === 0) URL.revokeObjectURL(a.href);
-      a.href = URL.createObjectURL(new Blob([t], { type:"text/plain" }));
+      if (a.href.indexOf("blob:") === 0) URL.revokeObjectURL(a.href);
+      a.href = URL.createObjectURL(new Blob([t], {type:"text/plain"}));
       a.style.display = "inline-flex";
     } catch (e) {}
-  }).catch(fail).then(function(){ busy($("expbtn"), false); });
+  }).catch(fail).then(() => busy($("expbtn"), false));
 }
 function copyExport(){
   var t = $("exp");
-  t.select(); t.setSelectionRange(0, 99999);
-  var done = function(){ toast("configuration copied"); };
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(t.value).then(done, function(){ toast("select the text and copy it by hand", "warn"); });
-  } else {
-    try { document.execCommand("copy") ? done() : toast("select the text and copy it by hand", "warn"); }
-    catch (e) { toast("select the text and copy it by hand", "warn"); }
-  }
+  t.select();
+  t.setSelectionRange(0, 99999);
+  var ok = () => toast("configuration copied");
+  var no = () => toast("select the text above and copy it by hand", "warn");
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.value).then(ok, no);
+  else { try { document.execCommand("copy") ? ok() : no(); } catch (e) { no(); } }
 }
 function doImport(){
-  var text = ($("imp").value||"").trim();
-  if (!text) { toast("paste a configuration first", "err"); return; }
-  if (!confirm("Apply this configuration?\n\nIt overwrites the settings it names. Learned devices and WiFi are kept.")) return;
+  var text = ($("imp").value || "").trim();
+  if (!text) return toast("paste a configuration first", "err");
+  if (!confirm("Apply this configuration?\n\nIt overwrites every setting it names. Learned devices and WiFi are kept.")) return;
   busy($("impgo"), true, "applying");
-  post("/api/config/import", { conf: text }).then(function(j){
-    toast("applied " + (j.applied==null ? "the" : j.applied) + " settings");
+  post("/api/config/import", {conf:text}).then(j => {
+    toast("applied " + (j.applied == null ? "the" : j.applied) + " settings");
     if (S.schema) loadSettings();
-  }).catch(fail).then(function(){ busy($("impgo"), false); });
+  }).catch(fail).then(() => busy($("impgo"), false));
 }
-function press(mode){
-  post("/api/action/press", { mode: mode })
-    .then(function(){ toast(mode === "long" ? "holding the power button" : "power button pressed"); })
-    .catch(fail);
+var press = mode => post("/api/action/press", {mode:mode})
+  .then(() => toast(mode === "long" ? "holding the power button down" : "power button pressed"))
+  .catch(fail);
+
+// wiring
+function show(t){
+  S.tab = t;
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === "v_" + t));
+  window.scrollTo(0, 0);
+  if (t === "devices" && !S.devs) loadDevices();
+  if (t === "settings" && !S.schema) loadSettings();
+  if (t === "status") loadLogs();
 }
+on("tabs", "click", e => { var b = e.target.closest("button[data-t]"); if (b) show(b.dataset.t); });
+on("devlist", "click", devAction);
+on("learnbox", "click", learnAction);
+on("learnbtn", "click", learnStart);
+on("devrefresh", "click", loadDevices);
+on("madd", "click", manualAdd);
+on("setform", "input", markChanges);
+on("setform", "change", markChanges);
+on("savebtn", "click", saveSettings);
+on("defbtn", "click", restoreDefaults);
+on("setreload", "click", loadSettings);
+on("wscan", "click", wifiScan);
+on("wjoin", "click", wifiJoin);
+on("otabtn", "click", otaUpload);
+on("expbtn", "click", doExport);
+on("copybtn", "click", copyExport);
+on("impgo", "click", doImport);
+on("wlist", "click", e => {
+  var b = e.target.closest("[data-ssid]"); if (!b) return;
+  $("wssid").value = b.dataset.ssid;
+  $("wpass").focus();
+});
+on("impbtn", "click", () => {
+  var b = $("impbox");
+  b.style.display = b.style.display === "none" ? "block" : "none";
+  if (b.style.display === "block") $("imp").focus();
+});
+on("wforget", "click", () => {
+  if (!confirm("Forget the saved WiFi network?\n\nThe device falls back to its own hotspot, which you would have to join to reach this page again.")) return;
+  post("/api/wifi/forget").then(() => toast("WiFi credentials cleared")).catch(fail);
+});
+on("pressbtn", "click", () => {
+  if (confirm("Press the PC power button once?\n\nIf the PC is off it starts; if it is running it may shut down.")) press("short");
+});
+var longTimer = null;
+on("longbtn", "click", () => {
+  $("longarm").style.display = "block";
+  clearTimeout(longTimer);
+  longTimer = setTimeout(() => { $("longarm").style.display = "none"; }, 15000);
+});
+on("longno", "click", () => { clearTimeout(longTimer); $("longarm").style.display = "none"; });
+on("longgo", "click", () => {
+  clearTimeout(longTimer);
+  $("longarm").style.display = "none";
+  if (confirm("Hold the power button down for about six seconds?\n\nThe PC loses power immediately and anything unsaved is lost.")) press("long");
+});
+on("rebootbtn", "click", () => {
+  if (!confirm("Reboot the device?\n\nThe PC is not touched. This page reconnects on its own.")) return;
+  post("/api/reboot").then(() => toast("rebooting")).catch(() => {}).then(() => setOnline(false));
+});
+on("logclr", "click", () => {
+  if (!confirm("Clear the log?")) return;
+  post("/api/logs/clear").then(() => { renderLogs([]); toast("log cleared"); }).catch(fail);
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) schedule();
+  else { clearTimeout(pollTimer); poll(); }
+});
+get("/api/config").then(c => { S.cfg = c; setTicks(); }).catch(() => {});
+poll();
+</script>
+</body>
+</html>
