@@ -41,6 +41,7 @@ void tick() {
   core::RadioInputs in;
   in.pc_state = PcSense::state();
   in.ota_in_progress = Web::otaInProgress();
+  in.learning = BleScan::learning();
 
   const core::RadioPlan plan = s_arbiter.update(in, configFrom(g_settings), millis());
 

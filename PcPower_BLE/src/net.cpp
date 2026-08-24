@@ -141,6 +141,8 @@ void shutdown() {
     WiFi.softAPdisconnect(true);
     s_ap_active = false;
   }
+  WiFi.scanDelete();
+  s_scan_running = false;  // results and any in-flight scan die with the radio
   WiFi.disconnect(true, false);
   WiFi.mode(WIFI_OFF);
   s_enabled = false;
@@ -264,7 +266,14 @@ void forgetCredentials() {
 }
 
 void startScan() {
-  if (s_scan_running) return;
+  if (!s_enabled) return;  // the radio is off; there is nothing to scan with
+  // Ask the driver, not our own flag. A flag that says "running" when the driver has already
+  // failed or been powered down wedges the scan permanently, because startScan() then refuses
+  // to start the replacement.
+  if (WiFi.scanComplete() == WIFI_SCAN_RUNNING) {
+    s_scan_running = true;
+    return;
+  }
   WiFi.scanDelete();
   WiFi.scanNetworks(/*async=*/true, /*show_hidden=*/false);
   s_scan_running = true;
@@ -278,6 +287,7 @@ size_t scanResultsToJson(char* buf, size_t len) {
     return pos;
   }
   if (status == WIFI_SCAN_FAILED) {
+    s_scan_running = false;  // clear first, or startScan() would refuse to retry
     startScan();
     core::jsonAppend(buf, len, &pos, "{\"scanning\":true,\"networks\":[]}");
     return pos;

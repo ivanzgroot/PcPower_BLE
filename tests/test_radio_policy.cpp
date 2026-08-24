@@ -77,6 +77,25 @@ TEST(radio_never_cuts_wifi_during_an_update) {
   CHECK(p.owner == core::RadioOwner::WiFi);
 }
 
+TEST(radio_keeps_scanning_while_learning_even_with_the_pc_on) {
+  // In exclusive mode the web interface only exists while the PC is on, which is exactly when
+  // the plan would otherwise stop the scanner - so learning a device would find nothing.
+  core::RadioInputs in = at(core::PcState::On);
+  in.learning = true;
+  const core::RadioPlan p = core::planFor(in, exclusiveCfg());
+  CHECK(p.ble_scanning);
+  CHECK(p.wifi_enabled);   // and the page stays reachable to show the candidates
+}
+
+TEST(radio_learning_does_not_disturb_an_update) {
+  core::RadioInputs in = at(core::PcState::On);
+  in.learning = true;
+  in.ota_in_progress = true;
+  const core::RadioPlan p = core::planFor(in, exclusiveCfg());
+  CHECK(!p.ble_scanning);  // an update in flight still wins
+  CHECK(p.wifi_enabled);
+}
+
 TEST(radio_owner_has_a_name) {
   CHECK_STREQ(core::radioOwnerName(core::RadioOwner::Ble), "ble");
   CHECK_STREQ(core::radioOwnerName(core::RadioOwner::WiFi), "wifi");

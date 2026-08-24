@@ -30,6 +30,11 @@ RadioPlan planFor(const RadioInputs& in, const RadioConfig& cfg) {
     plan.wifi_enabled = true;
     plan.ble_scanning = !(pc_on && cfg.pause_scan_when_pc_on);
   }
+  // Learning needs the scanner whatever the PC is doing. In exclusive mode the page that starts
+  // a learn is only reachable while the PC is on, which is precisely when scanning would
+  // otherwise be stopped, so without this the button would quietly find nothing.
+  if (in.learning) plan.ble_scanning = true;
+
   plan.owner = pc_on ? RadioOwner::WiFi : RadioOwner::Ble;
   return plan;
 }

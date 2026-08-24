@@ -401,6 +401,10 @@ static void handleActionPress() {
 }
 
 static void handleWifiScan() {
+  if (!Net::enabled()) {
+    sendError(409, "the WiFi radio is off");
+    return;
+  }
   Net::startScan();
   Net::scanResultsToJson(s_buf, sizeof s_buf);
   sendJson(200, s_buf);

@@ -26,6 +26,7 @@ struct RadioConfig {
 struct RadioInputs {
   PcState pc_state = PcState::Unknown;
   bool ota_in_progress = false;
+  bool learning = false;  // a learning window needs the scanner regardless of PC state
 };
 
 struct RadioPlan {
