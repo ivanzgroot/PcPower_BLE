@@ -4,3 +4,4 @@ tools/.arduino-data/
 tools/.arduino-user/
 tests/bin/
 *.o
+release/

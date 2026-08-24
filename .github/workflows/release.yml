@@ -1,0 +1,100 @@
+# Builds the firmware and publishes a release whenever a v* tag is pushed.
+#
+#   git tag -a v1.2.0 -m "..." && git push origin v1.2.0
+#
+# The binaries attached to a release are built here, from a clean checkout with the toolchain
+# versions pinned in tools/build.sh, rather than from whatever state a developer's machine
+# happened to be in.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history and tags, so the notes step can work out what changed since the
+          # previous release. The default shallow clone cannot see earlier tags.
+          fetch-depth: 0
+
+      # The ESP32 core is a ~1 GB download, so the first run is slow and the rest are not.
+      # Keyed on the build script, which is where the core and library versions are pinned.
+      - name: Cache the Arduino toolchain
+        uses: actions/cache@v4
+        with:
+          path: |
+            tools/bin
+            tools/.arduino-data
+            tools/.arduino-user
+          key: arduino-${{ runner.os }}-${{ hashFiles('tools/build.sh') }}
+
+      - name: Run the unit tests
+        run: tools/run_tests.sh
+
+      # A release whose firmware reports a different version than its tag is a support problem
+      # that surfaces months later, so fail here instead.
+      - name: Check the firmware version matches the tag
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          firmware=$(sed -n 's/.*kVersion = "\([^"]*\)".*/\1/p' PcPower_BLE/src/app.h)
+          echo "tag=$tag firmware=$firmware"
+          if [ "$tag" != "$firmware" ]; then
+            echo "::error::tag v$tag does not match kVersion \"$firmware\" in PcPower_BLE/src/app.h"
+            exit 1
+          fi
+
+      - name: Build the firmware
+        run: tools/build.sh
+
+      - name: Stage the release assets
+        run: |
+          mkdir -p release
+          cp build/PcPower_BLE.merged.bin "release/PcPower_BLE-${GITHUB_REF_NAME}-usb.bin"
+          cp build/PcPower_BLE.bin        "release/PcPower_BLE-${GITHUB_REF_NAME}-ota.bin"
+          cd release && sha256sum *.bin > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Write the release notes
+        run: |
+          previous=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          {
+            echo "### Which file do I need?"
+            echo
+            echo "| File | Use it for |"
+            echo "| --- | --- |"
+            echo "| \`PcPower_BLE-${GITHUB_REF_NAME}-usb.bin\` | First install. Full image including the bootloader and partition table, flashed at offset 0 over USB with \`tools/flash.sh\` or esptool. |"
+            echo "| \`PcPower_BLE-${GITHUB_REF_NAME}-ota.bin\` | Updating a board that is already running. Upload it on the System tab of the web interface. |"
+            echo
+            echo "Uploading the USB image to the OTA endpoint will be rejected: it contains the"
+            echo "bootloader, which does not belong in an application slot."
+            echo
+            echo "Built for the ESP32-C3 SuperMini. Setup and wiring are covered in the"
+            echo "[README](https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/README.md)."
+            echo
+            if [ -n "$previous" ]; then
+              echo "**Changes since $previous:**"
+              echo
+              git log --pretty='- %s' "$previous..${GITHUB_REF_NAME}"
+              echo
+              echo "[Full diff](https://github.com/${GITHUB_REPOSITORY}/compare/$previous...${GITHUB_REF_NAME})"
+            fi
+          } > release/NOTES.md
+          cat release/NOTES.md
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            release/PcPower_BLE-*.bin release/SHA256SUMS \
+            --title "PcPower_BLE ${GITHUB_REF_NAME}" \
+            --notes-file release/NOTES.md
