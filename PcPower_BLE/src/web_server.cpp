@@ -2,6 +2,8 @@
 
 #include <Update.h>
 #include <WebServer.h>
+#include <esp_ota_ops.h>
+#include <esp_partition.h>
 
 #include "app.h"
 #include "ble_scan.h"
@@ -25,6 +27,26 @@ static size_t s_ota_written = 0;
 static size_t s_ota_total = 0;
 static uint32_t s_reboot_at = 0;
 static bool s_ota_rejected = false;
+static bool s_ota_failed = false;
+static char s_ota_error[192] = {0};
+
+// The slot a new firmware image would be written to, or null when this board's partition
+// table has no second app slot and therefore cannot be updated over the air at all.
+static const esp_partition_t* otaTargetPartition() {
+  const esp_partition_t* next = esp_ota_get_next_update_partition(nullptr);
+  if (!next || next == esp_ota_get_running_partition()) return nullptr;
+  return next;
+}
+
+// Puts everything back the way it was before the upload started. Missing this is how a failed
+// update leaves the board alive but deaf: scanning paused and triggering inhibited, with no
+// sign of it except that the PC stops waking up.
+static void otaRelease() {
+  s_ota_running = false;
+  s_ota_percent = 0;
+  BleScan::setInhibited(false);
+  BleScan::setPaused(false);  // loop() re-pauses on its own if the PC is running
+}
 
 // --- request guards --------------------------------------------------------
 //
@@ -148,9 +170,13 @@ static void handleStatus() {
                    (unsigned)BleScan::learner().remaining(millis()));
 
   core::jsonAppend(s_buf, sizeof s_buf, &pos,
-                   "\"ota\":{\"running\":%s,\"percent\":%u},\"uptime_ms\":%u,\"heap\":%u,"
+                   "\"ota\":{\"running\":%s,\"percent\":%u,\"capable\":%s,\"partition\":\"%s\","
+                   "\"slot_bytes\":%u},\"uptime_ms\":%u,\"heap\":%u,"
                    "\"version\":\"%s\",\"devices\":",
                    s_ota_running ? "true" : "false", (unsigned)s_ota_percent,
+                   otaTargetPartition() ? "true" : "false",
+                   esp_ota_get_running_partition() ? esp_ota_get_running_partition()->label : "?",
+                   (unsigned)(otaTargetPartition() ? otaTargetPartition()->size : 0),
                    (unsigned)millis(), (unsigned)ESP.getFreeHeap(), kVersion);
   pos += g_devices.toJson(s_buf + pos, sizeof s_buf - pos, millis());
   core::jsonAppend(s_buf, sizeof s_buf, &pos, "}");
@@ -419,23 +445,50 @@ static void handleUpdateUpload() {
       appLog("ota: refused, request did not come from this board's own address");
       return;
     }
-    s_ota_running = true;
+    s_ota_failed = false;
+    s_ota_error[0] = '\0';
     s_ota_written = 0;
     s_ota_percent = 0;
     s_ota_total = s_server.header("Content-Length").toInt();
+
+    // Check this before touching anything else. A board flashed with a single-app-slot
+    // partition table can never take an update this way, and saying so plainly beats letting
+    // every write fail with "Partition Could Not be Found".
+    const esp_partition_t* target = otaTargetPartition();
+    if (!target) {
+      snprintf(s_ota_error, sizeof s_ota_error,
+               "this board has no second app slot, so it cannot be updated over the air. "
+               "Reflash it once over USB with the 'No FS 4MB (2MB APP x2)' partition scheme, "
+               "or with the -usb.bin from a release, and OTA will work from then on.");
+      appLog("ota: refused, this partition table has no second app slot");
+      s_ota_failed = true;
+      return;
+    }
+
+    s_ota_running = true;
     // Give the whole radio and CPU to the upload, and make sure nothing presses the power
     // button while the firmware underneath it is being replaced.
     BleScan::setInhibited(true);
     BleScan::setPaused(true);
     StatusLed::setMode(core::LedMode::WifiConnecting);
-    appLogf("ota: receiving %s", upload.filename.c_str());
+    appLogf("ota: receiving %s into %s", upload.filename.c_str(), target->label);
+
     if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
-      appLogf("ota: cannot start (%s)", Update.errorString());
+      snprintf(s_ota_error, sizeof s_ota_error, "%s", Update.errorString());
+      appLogf("ota: cannot start (%s)", s_ota_error);
+      s_ota_failed = true;
+      otaRelease();
+      return;
     }
   } else if (upload.status == UPLOAD_FILE_WRITE) {
-    if (s_ota_rejected) return;
+    if (s_ota_rejected || s_ota_failed) return;  // drain the upload, do not flood the log
     if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-      appLogf("ota: write failed (%s)", Update.errorString());
+      snprintf(s_ota_error, sizeof s_ota_error, "%s", Update.errorString());
+      appLogf("ota: write failed (%s)", s_ota_error);
+      s_ota_failed = true;
+      Update.abort();
+      otaRelease();
+      return;
     }
     s_ota_written += upload.currentSize;
     if (s_ota_total > 0) {
@@ -443,16 +496,24 @@ static void handleUpdateUpload() {
       s_ota_percent = (uint8_t)(percent > 100 ? 100 : percent);
     }
   } else if (upload.status == UPLOAD_FILE_END) {
-    if (s_ota_rejected) return;
+    if (s_ota_rejected || s_ota_failed) return;
     if (Update.end(true)) {
       s_ota_percent = 100;
       appLogf("ota: %u bytes accepted, rebooting", (unsigned)s_ota_written);
     } else {
-      appLogf("ota: failed (%s)", Update.errorString());
+      snprintf(s_ota_error, sizeof s_ota_error, "%s", Update.errorString());
+      appLogf("ota: failed (%s)", s_ota_error);
+      s_ota_failed = true;
+      otaRelease();
     }
   } else if (upload.status == UPLOAD_FILE_ABORTED) {
+    if (!s_ota_failed) {
+      snprintf(s_ota_error, sizeof s_ota_error, "the upload was interrupted");
+      s_ota_failed = true;
+    }
     Update.abort();
     appLog("ota: aborted");
+    otaRelease();
   }
 }
 
@@ -462,16 +523,14 @@ static void handleUpdateDone() {
     s_server.send(403, "text/plain", "cross-origin requests are refused");
     return;
   }
-  const bool ok = !Update.hasError();
-  if (ok) {
-    sendJson(200, "{\"ok\":true}");
-    s_reboot_at = millis() + 500;  // let the response reach the browser first
-  } else {
-    s_ota_running = false;
-    s_ota_percent = 0;
-    BleScan::setInhibited(false);
-    sendError(500, Update.errorString());
+  if (s_ota_failed || Update.hasError()) {
+    if (s_ota_error[0] == '\0') snprintf(s_ota_error, sizeof s_ota_error, "%s", Update.errorString());
+    otaRelease();
+    sendError(500, s_ota_error);
+    return;
   }
+  sendJson(200, "{\"ok\":true}");
+  s_reboot_at = millis() + 500;  // let the response reach the browser first
 }
 
 static void handleNotFound() {
@@ -539,5 +598,11 @@ void tick() {
 
 bool otaInProgress() { return s_ota_running; }
 uint8_t otaPercent() { return s_ota_percent; }
+bool otaCapable() { return otaTargetPartition() != nullptr; }
+
+const char* otaPartition() {
+  const esp_partition_t* running = esp_ota_get_running_partition();
+  return running ? running->label : "unknown";
+}
 
 }  // namespace Web

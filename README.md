@@ -200,6 +200,14 @@ is gone. Enable `require_absence` under Guards.
 a single antenna. Raise `scan_intvl_ms` or lower `scan_window_ms`. The firmware already caps the
 window at 60% of the interval whenever WiFi is connected.
 
+**A firmware update fails with "Partition Could Not be Found".** The board is running a partition
+table with only one app slot, so there is nowhere to write a new image. This happens if it was
+flashed from the Arduino IDE with a scheme such as "Huge APP (3MB No OTA)", which is a tempting
+choice once the default one rejects the sketch for being too big. Reflash it once over USB using
+No FS 4MB (2MB APP x2), or the `-usb.bin` from a release, and updates will work from then on. The
+System tab says so up front, and `status` on the serial console reports which slot it is running
+from and whether a spare exists.
+
 **Locked out after changing a pin or the hotspot password.** Connect over USB at 115200 baud and run
 `defaults`. That restores every setting while keeping your learned devices and WiFi credentials.
 

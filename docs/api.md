@@ -43,11 +43,15 @@ curl -s http://pcpower.local/api/status
            "last_reason_text":"device is not in the known list","last_reason_ms":210},
   "pulse": {"count":3,"ms_since_last":428601,"active":false},
   "learn": {"active":false,"remaining_ms":0},
-  "ota": {"running":false,"percent":0},
+  "ota": {"running":false,"percent":0,"capable":true,"partition":"app0","slot_bytes":1966080},
   "uptime_ms":431204, "heap":198432, "version":"1.0.0",
   "devices":[ ... see GET /api/devices ... ]
 }
 ```
+
+`ota.capable` is false when the board's partition table has no second app slot, in which case
+`POST /update` will refuse the upload immediately rather than failing partway through.
+`ota.partition` names the slot currently running.
 
 `pc.state` is the debounced state the guards use; `pc.raw` is the latest window classification
 before hysteresis. `duty` and `spread` are what the classifier measured — the numbers to tune
@@ -211,6 +215,12 @@ returns the error from the update library and stays on the old firmware.
 ```bash
 curl -s -F 'firmware=@build/PcPower_BLE.bin' http://pcpower.local/update
 ```
+
+If the board has no spare app slot the upload is refused at the start, with an error explaining
+that it needs reflashing over USB with a two-slot partition table; check `ota.capable` in
+`GET /api/status` before offering an update. Any failure — refused, interrupted, or a bad write —
+resumes scanning and clears the trigger inhibit before replying, so a failed update never leaves
+the board awake but deaf.
 
 Progress is also visible in `GET /api/status` under `ota`. Upload the plain
 `PcPower_BLE.bin`, **not** `PcPower_BLE.merged.bin` — the merged image includes the bootloader and

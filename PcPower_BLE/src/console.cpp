@@ -8,6 +8,7 @@
 #include "power_out.h"
 #include "settings_store.h"
 #include "status_led.h"
+#include "web_server.h"
 
 static char s_line[160];
 static size_t s_len = 0;
@@ -48,6 +49,9 @@ static void printStatus() {
   Serial.printf("wifi      : %s, ssid '%s', ip %s%s\n", Net::modeName(), Net::ssid(), Net::ip(),
                 Net::apActive() ? ", hotspot up" : "");
   Serial.printf("devices   : %u known\n", (unsigned)g_devices.count());
+  Serial.printf("ota       : running from %s, %s\n", Web::otaPartition(),
+                Web::otaCapable() ? "a spare slot is available"
+                                  : "NO spare slot - this board cannot update over the air");
 }
 
 static void printDevices() {

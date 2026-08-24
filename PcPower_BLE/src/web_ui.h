@@ -235,6 +235,7 @@ button,summary{cursor:pointer}
 <button class="btn pri wide mt" id="otabtn">Upload firmware</button>
 <div class="prog"><b id="otabar"></b></div>
 <div class="hint" id="otatxt">no upload running</div>
+<div class="warnbox" id="otanocap" hidden></div>
 <div class="warnbox">Do not power off the device, and do not close this page, while an update is running.</div>
 </div>
 <div class="card">
@@ -377,6 +378,18 @@ var loadLogs = () => get("/api/logs").then(j => renderLogs(j.lines || [])).catch
 function renderStatus(){
   var s = S.st; if (!s) return;
   var pc = s.pc || {}, net = s.net || {}, sc = s.scan || {}, pu = s.pulse || {}, ln = s.learn || {};
+  var ota = s.ota || {};
+  var nocap = $("otanocap");
+  if (nocap) {
+    var blocked = ota.capable === false;
+    nocap.hidden = !blocked;
+    if (blocked) nocap.textContent =
+      "This board cannot be updated over the air: its partition table has no second app slot " +
+      "(running from \"" + (ota.partition || "?") + "\"). Reflash it once over USB using the " +
+      "No FS 4MB (2MB APP x2) partition scheme, or the -usb.bin from a release.";
+    var btn = $("otabtn");
+    if (btn) btn.disabled = blocked;
+  }
   var state = pc.state || "unknown";
   var b = $("badge");
   b.className = "badge " + (["on","off","sleep"].indexOf(state) < 0 ? "unknown" : state);
