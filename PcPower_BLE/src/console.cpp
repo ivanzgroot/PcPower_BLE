@@ -118,7 +118,7 @@ static void handleSet(char* rest) {
     Serial.printf("error: %s\n", err);
     return;
   }
-  g_settings.applyCoupling(Net::staConnected());
+  g_settings.applyCoupling();
   PowerOut::reconfigure(g_settings);
   PcSense::reconfigure(g_settings);
   StatusLed::reconfigure(g_settings);

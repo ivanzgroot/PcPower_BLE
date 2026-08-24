@@ -261,17 +261,9 @@ bool Settings::setByKey(const char* key, const char* value, char* err, size_t er
   return false;
 }
 
-void Settings::applyCoupling(bool wifi_connected) {
+void Settings::applyCoupling() {
   const int32_t interval = num_[S_SCAN_INTVL_MS];
-  int32_t window = num_[S_SCAN_WINDOW_MS];
-  int32_t ceiling = interval;
-  if (wifi_connected) {
-    // BLE and WiFi share one antenna on the C3. Above roughly 60% duty the web UI stalls.
-    ceiling = interval * 60 / 100;
-  }
-  if (ceiling < kSettingDefs[S_SCAN_WINDOW_MS].min) ceiling = kSettingDefs[S_SCAN_WINDOW_MS].min;
-  if (window > ceiling) window = ceiling;
-  num_[S_SCAN_WINDOW_MS] = window;
+  if (num_[S_SCAN_WINDOW_MS] > interval) num_[S_SCAN_WINDOW_MS] = interval;
 }
 
 // --- serialisation ---------------------------------------------------------

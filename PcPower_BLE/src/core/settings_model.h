@@ -73,9 +73,10 @@ class Settings {
   bool setByKey(const char* key, const char* value, char* err, size_t err_len,
                 bool* clamped = nullptr);
 
-  // The scan window can never exceed the interval, and stays under 60% of it while WiFi is
-  // connected so an aggressive scan setting cannot starve the web UI.
-  void applyCoupling(bool wifi_connected);
+  // The only invariant worth writing back: a scan window longer than its interval is
+  // meaningless. How much duty cycle to yield to WiFi depends on whether WiFi is even running,
+  // so that lives in effectiveScanWindowMs() and never overwrites what the user configured.
+  void applyCoupling();
 
   static const SettingDef* findDef(const char* key, SettingId* id_out);
 

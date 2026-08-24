@@ -163,6 +163,30 @@ TEST(radio_arbiter_lets_an_update_through_without_waiting) {
   CHECK(p.wifi_enabled);   // no dwell for an update in flight
 }
 
+// --- the scan duty cycle ----------------------------------------------------
+
+TEST(scan_window_is_unthrottled_when_ble_has_the_antenna) {
+  // Exclusive mode powers WiFi down while the scanner runs, so there is nothing to yield to.
+  CHECK_EQ(core::effectiveScanWindowMs(200, 200, false), 200);   // 100% duty
+  CHECK_EQ(core::effectiveScanWindowMs(200, 60, false), 60);
+}
+
+TEST(scan_window_yields_to_wifi_only_while_actually_sharing) {
+  CHECK_EQ(core::effectiveScanWindowMs(200, 200, true), 120);    // 60% of the interval
+  CHECK_EQ(core::effectiveScanWindowMs(200, 60, true), 60);      // already modest, left alone
+}
+
+TEST(scan_window_never_exceeds_the_interval) {
+  CHECK_EQ(core::effectiveScanWindowMs(200, 500, false), 200);
+  CHECK_EQ(core::effectiveScanWindowMs(200, 500, true), 120);
+}
+
+TEST(scan_window_stays_legal_at_the_extremes) {
+  CHECK_EQ(core::effectiveScanWindowMs(50, 10, true), 10);   // 60% of 50 is 30, 10 is under it
+  CHECK_EQ(core::effectiveScanWindowMs(10, 10, true), 10);   // never throttled below the minimum
+  CHECK_EQ(core::effectiveScanWindowMs(200, 0, false), 10);
+}
+
 // --- the connect budget -----------------------------------------------------
 
 TEST(budget_divides_the_window_between_the_tries) {

@@ -62,6 +62,10 @@ void tick() {
     BleScan::setPaused(!plan.ble_scanning);
   }
 
+  // The scanner only has to ease off when WiFi is genuinely powered alongside it, which in
+  // exclusive mode happens only during a learn started from the web interface.
+  BleScan::setSharingAntenna(plan.wifi_enabled && plan.ble_scanning);
+
   s_plan = plan;
   s_applied = true;
 }

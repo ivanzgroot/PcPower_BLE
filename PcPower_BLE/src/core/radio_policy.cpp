@@ -39,6 +39,22 @@ RadioPlan planFor(const RadioInputs& in, const RadioConfig& cfg) {
   return plan;
 }
 
+uint16_t effectiveScanWindowMs(int32_t interval_ms, int32_t window_ms, bool sharing_antenna) {
+  static constexpr int32_t kMinWindowMs = 10;
+  int32_t window = window_ms;
+  if (window > interval_ms) window = interval_ms;  // hardware invariant
+
+  if (sharing_antenna) {
+    // Both radios on one antenna: above roughly 60% duty the web interface stalls.
+    int32_t ceiling = interval_ms * 60 / 100;
+    if (ceiling < kMinWindowMs) ceiling = kMinWindowMs;
+    if (window > ceiling) window = ceiling;
+  }
+
+  if (window < kMinWindowMs) window = kMinWindowMs;
+  return (uint16_t)window;
+}
+
 void RadioArbiter::begin(uint32_t now_ms) {
   pc_on_ = false;  // start by listening; waking the PC is the board's reason to exist
   pending_pc_on_ = false;

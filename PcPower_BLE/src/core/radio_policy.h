@@ -54,6 +54,11 @@ class RadioArbiter {
   uint32_t last_switch_ms_ = 0;
 };
 
+// The scan window actually used. The configured value is never overwritten: yielding duty
+// cycle to WiFi is only correct while the two radios are genuinely running together, which in
+// exclusive mode they never are.
+uint16_t effectiveScanWindowMs(int32_t interval_ms, int32_t window_ms, bool sharing_antenna);
+
 // "Up to N attempts inside a window, then give up and raise the hotspot." Each attempt gets an
 // equal slice of the window, which is how long it may sit there waiting for a router to answer.
 class ConnectBudget {

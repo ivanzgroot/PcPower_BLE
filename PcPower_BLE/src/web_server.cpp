@@ -123,7 +123,7 @@ static bool argInt(const char* name, long* out) {
 
 // Applies a settings change everywhere it matters, without a reboot.
 static void applySettingsToHardware() {
-  g_settings.applyCoupling(Net::staConnected());
+  g_settings.applyCoupling();
   PowerOut::reconfigure(g_settings);
   PcSense::reconfigure(g_settings);
   StatusLed::reconfigure(g_settings);

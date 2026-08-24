@@ -164,6 +164,12 @@ When WiFi comes up it gets five attempts spread over sixty seconds to join the s
 they all fail it raises the hotspot and keeps trying the real network every five minutes in the
 background. All three numbers are configurable under Settings → Radio.
 
+Neither radio makes room for the other when the other is not there. WiFi power save is off while
+WiFi owns the antenna, and the scan duty cycle is only eased back toward 60% while both radios are
+genuinely running at once, which in exclusive mode happens only during a learn started from the
+web interface. Your configured scan window is never written over; the concession is worked out
+when it is used.
+
 Switching only happens after the PC state has held for five seconds, so a flickering power LED
 cannot make the board tear WiFi up and down repeatedly, and an update in progress is never
 interrupted by the PC being switched off.
@@ -233,8 +239,8 @@ intended; see "One radio at a time" above. Turn the PC on to reach the board, or
 
 **The web interface is sluggish while the PC is off, with `radio_exclusive` turned off.** That is
 the BLE scan competing with WiFi for a single antenna. Raise `scan_intvl_ms` or lower
-`scan_window_ms`. The firmware already caps the window at 60% of the interval whenever WiFi is
-connected.
+`scan_window_ms`. The firmware already eases the window back to 60% of the interval whenever both
+radios are running together.
 
 **The sense wire has failed and the board is unreachable.** In exclusive mode a dead sense wire
 reads as "PC off" forever, so WiFi never comes up. Connect over USB at 115200 baud and run

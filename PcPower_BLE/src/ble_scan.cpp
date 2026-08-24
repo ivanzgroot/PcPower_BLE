@@ -3,6 +3,7 @@
 #include <NimBLEDevice.h>
 
 #include "app.h"
+#include "core/radio_policy.h"
 #include "device_store.h"
 #include "pc_sense.h"
 #include "power_out.h"
@@ -33,11 +34,18 @@ static uint32_t s_logged_reason_ms = 0;
 static uint8_t s_restart_count = 0;
 static uint32_t s_last_watchdog_ms = 0;
 
+static bool s_sharing_antenna = false;
+
 static void applyScanSettings(const core::Settings& s) {
   if (!s_scan) return;
+  const int32_t interval = s.num(core::S_SCAN_INTVL_MS);
+  // Only yield duty cycle to WiFi while WiFi is actually powered. In exclusive mode the scanner
+  // has the antenna to itself and there is nothing to be polite to.
+  const uint16_t window = core::effectiveScanWindowMs(interval, s.num(core::S_SCAN_WINDOW_MS),
+                                                      s_sharing_antenna);
   s_scan->setActiveScan(s.flag(core::S_SCAN_ACTIVE));
-  s_scan->setInterval((uint16_t)s.num(core::S_SCAN_INTVL_MS));  // milliseconds in NimBLE 2.x
-  s_scan->setWindow((uint16_t)s.num(core::S_SCAN_WINDOW_MS));
+  s_scan->setInterval((uint16_t)interval);  // milliseconds in NimBLE 2.x
+  s_scan->setWindow(window);
   s_scan->setDuplicateFilter(0);  // repeats ARE the signal - never filter them
   s_scan->setMaxResults(0);       // a live listener, not a result collector
 }
@@ -131,8 +139,11 @@ void begin(const core::Settings& s) {
   applyScanSettings(s);
   startScan();
   s_last_watchdog_ms = millis();
-  appLogf("ble: scanning %d/%d ms%s", (int)s.num(core::S_SCAN_INTVL_MS),
-          (int)s.num(core::S_SCAN_WINDOW_MS), s.flag(core::S_SCAN_ACTIVE) ? " active" : "");
+  appLogf("ble: scanning %d/%d ms%s%s", (int)s.num(core::S_SCAN_INTVL_MS),
+          (int)core::effectiveScanWindowMs(s.num(core::S_SCAN_INTVL_MS),
+                                           s.num(core::S_SCAN_WINDOW_MS), s_sharing_antenna),
+          s.flag(core::S_SCAN_ACTIVE) ? " active" : "",
+          s_sharing_antenna ? ", sharing with WiFi" : ", whole antenna");
 }
 
 void reconfigure(const core::Settings& s) {
@@ -158,6 +169,14 @@ void setPaused(bool paused) {
 }
 
 bool paused() { return s_paused; }
+
+void setSharingAntenna(bool sharing) {
+  if (sharing == s_sharing_antenna) return;
+  s_sharing_antenna = sharing;
+  appLogf("ble: %s", sharing ? "sharing the antenna with WiFi, easing the duty cycle"
+                             : "whole antenna, scanning at the configured duty cycle");
+  reconfigure(g_settings);
+}
 bool scanning() { return s_scan && s_scan->isScanning(); }
 
 void setInhibited(bool inhibit) { s_external_inhibit = inhibit; }

@@ -16,6 +16,7 @@ void reconfigure(const core::Settings& s);
 void tick();  // watchdog and deferred logging; call from loop()
 
 void setPaused(bool paused);     // stops the radio, e.g. while the PC is running
+void setSharingAntenna(bool sharing);  // true only while WiFi is powered AND the scan runs
 bool paused();
 bool scanning();
 void setInhibited(bool inhibit);  // blocks pulses without stopping the scan (OTA, learning)

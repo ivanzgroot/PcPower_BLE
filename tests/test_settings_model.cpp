@@ -93,19 +93,19 @@ TEST(settings_negative_values_parse) {
   CHECK_EQ(s.num(core::S_RSSI_MIN), -70);
 }
 
-TEST(settings_coupling_keeps_the_radio_usable) {
+TEST(settings_coupling_only_enforces_the_hardware_invariant) {
+  // The window cannot exceed the interval - that is physics. Yielding duty cycle to WiFi is a
+  // policy that depends on whether the two radios are actually running together, so it is
+  // computed at the point of use and never written back over the user's setting.
   core::Settings s;
   s.setNum(core::S_SCAN_INTVL_MS, 200);
   s.setNum(core::S_SCAN_WINDOW_MS, 500);
-  s.applyCoupling(false);
-  CHECK_EQ(s.num(core::S_SCAN_WINDOW_MS), 200);  // window never exceeds interval
+  s.applyCoupling();
+  CHECK_EQ(s.num(core::S_SCAN_WINDOW_MS), 200);
+
   s.setNum(core::S_SCAN_WINDOW_MS, 200);
-  s.applyCoupling(true);
-  CHECK_EQ(s.num(core::S_SCAN_WINDOW_MS), 120);  // 60% of interval while WiFi is up
-  s.setNum(core::S_SCAN_INTVL_MS, 50);
-  s.setNum(core::S_SCAN_WINDOW_MS, 10);
-  s.applyCoupling(true);
-  CHECK_EQ(s.num(core::S_SCAN_WINDOW_MS), 10);   // never clamped below the minimum
+  s.applyCoupling();
+  CHECK_EQ(s.num(core::S_SCAN_WINDOW_MS), 200);  // configured value survives
 }
 
 TEST(settings_conf_round_trip) {
