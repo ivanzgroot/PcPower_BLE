@@ -47,6 +47,7 @@ static void otaRelease() {
   s_ota_percent = 0;
   BleScan::setInhibited(false);
   BleScan::setPaused(false);  // loop() re-pauses on its own if the PC is running
+  Net::setPowerSave(!g_settings.flag(core::S_RADIO_EXCLUSIVE));
 }
 
 // --- request guards --------------------------------------------------------
@@ -478,6 +479,7 @@ static void handleUpdateUpload() {
     // button while the firmware underneath it is being replaced.
     BleScan::setInhibited(true);
     BleScan::setPaused(true);
+    Net::setPowerSave(false);  // a napping modem drops long uploads
     StatusLed::setMode(core::LedMode::WifiConnecting);
     appLogf("ota: receiving %s into %s", upload.filename.c_str(), target->label);
 

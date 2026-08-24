@@ -228,6 +228,9 @@ that it needs reflashing over USB with a two-slot partition table; check `ota.ca
 resumes scanning and clears the trigger inhibit before replying, so a failed update never leaves
 the board awake but deaf.
 
+WiFi power save is switched off for the duration of the upload and restored afterwards. A
+napping modem is a common cause of a large transfer stalling and the connection being dropped.
+
 Progress is also visible in `GET /api/status` under `ota`. Upload the plain
 `PcPower_BLE.bin`, **not** `PcPower_BLE.merged.bin` — the merged image includes the bootloader and
 partition table and is only for flashing over USB.

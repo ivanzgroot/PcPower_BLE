@@ -7,6 +7,7 @@
 //
 // Every pin and polarity above is a runtime setting; these are only the defaults.
 #include <Arduino.h>
+#include <esp_system.h>
 
 #include "src/app.h"
 #include "src/ble_scan.h"
@@ -47,6 +48,16 @@ void setup() {
   PcSense::begin(g_settings);
 
   Serial.printf("\nPcPower_BLE %s\n", kVersion);
+  // A dropped upload looks identical whether the network died or the board did. This is how
+  // you tell: a panic or watchdog reset here means the board restarted mid-transfer.
+  appLogf("boot: reset reason %d (%s)", (int)esp_reset_reason(),
+          esp_reset_reason() == ESP_RST_POWERON   ? "power-on"
+          : esp_reset_reason() == ESP_RST_SW      ? "software restart"
+          : esp_reset_reason() == ESP_RST_PANIC   ? "PANIC - firmware crashed"
+          : esp_reset_reason() == ESP_RST_INT_WDT ? "interrupt watchdog"
+          : esp_reset_reason() == ESP_RST_TASK_WDT ? "task watchdog"
+          : esp_reset_reason() == ESP_RST_BROWNOUT ? "BROWNOUT - power supply dipped"
+                                                   : "other");
   appLogf("boot: v%s, %u known devices, out=GPIO%d sense=GPIO%d", kVersion,
           (unsigned)g_devices.count(), (int)g_settings.num(core::S_PIN_OUT),
           (int)g_settings.num(core::S_PIN_SENSE));
@@ -92,5 +103,7 @@ void loop() {
   updateStatusLed();
   appLogPump();
 
-  delay(2);  // yield to the radio, the sense task and the web server
+  // An upload gets the whole loop; every millisecond spent elsewhere is a millisecond the
+  // browser spends waiting, and the server drops a stalled transfer after five seconds.
+  if (!Web::otaInProgress()) delay(2);
 }

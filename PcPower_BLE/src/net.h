@@ -19,6 +19,10 @@ void resume();
 void shutdown();
 bool enabled();
 
+// WiFi power save. Worth having when BLE is sharing the antenna, actively harmful during a
+// sustained transfer: the modem naps between beacons and a large upload stalls and drops.
+void setPowerSave(bool enabled);
+
 Mode mode();
 const char* modeName();
 bool staConnected();

@@ -114,7 +114,9 @@ void resume() {
   s_enabled = true;
   WiFi.setHostname(s_hostname);
   WiFi.mode(WIFI_STA);  // startAp() switches to AP_STA if and when a hotspot is needed
-  WiFi.setSleep(true);  // BLE and WiFi share one antenna on the C3
+  // In exclusive mode WiFi has the antenna to itself, so there is nothing to be polite to and
+  // power save only costs reliability. In shared mode it helps the scanner get a look in.
+  setPowerSave(!g_settings.flag(core::S_RADIO_EXCLUSIVE));
   s_ap_active = false;
   s_mdns_started = false;
 
@@ -151,6 +153,8 @@ void shutdown() {
 }
 
 bool enabled() { return s_enabled; }
+
+void setPowerSave(bool enabled_in) { WiFi.setSleep(enabled_in); }
 
 void tick() {
   if (!s_enabled) return;
