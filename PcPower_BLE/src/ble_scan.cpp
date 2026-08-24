@@ -166,8 +166,16 @@ bool inhibited() { return s_external_inhibit || s_learn_inhibit; }
 void startLearning(uint32_t duration_ms) {
   s_learner.start(millis(), duration_ms);
   s_learn_inhibit = true;  // a candidate must not press the button while it is held close
-  if (s_paused) setPaused(false);
-  appLogf("learn: listening for %u ms", (unsigned)duration_ms);
+  s_paused = false;
+
+  // Restart the scan outright rather than trusting the paused flag. The flag says what we asked
+  // for, not what the radio is doing, and a WiFi power cycle underneath can leave the scan
+  // stopped with the flag still saying otherwise - which shows up as a learn that finds nothing.
+  if (s_scan) {
+    s_scan->stop();
+    startScan();
+  }
+  appLogf("learn: listening for %u ms, scanner restarted", (unsigned)duration_ms);
 }
 
 void cancelLearning() {
