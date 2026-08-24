@@ -11,7 +11,6 @@
 static const char* kNamespace = "wifi";
 static constexpr uint32_t kConnectTimeoutMs = 20000;
 static constexpr uint32_t kRetryIntervalMs = 60000;
-static constexpr uint32_t kApLingerMs = 60000;
 
 static Net::Mode s_mode = Net::Mode::Booting;
 static DNSServer s_dns;
@@ -21,7 +20,6 @@ static bool s_mdns_started = false;
 static uint32_t s_connect_started_ms = 0;
 static uint32_t s_last_attempt_ms = 0;
 static uint32_t s_station_since_ms = 0;
-static bool s_ap_was_up_at_boot = false;
 
 static char s_ssid[33] = {0};
 static char s_pass[65] = {0};
@@ -52,6 +50,7 @@ static void buildApSsid(const core::Settings& s) {
 
 static void startAp() {
   if (s_ap_active) return;
+  WiFi.mode(WIFI_AP_STA);
   WiFi.softAP(s_ap_ssid, g_settings.str(core::S_AP_PASS));
   s_ap_active = true;
   const IPAddress ip = WiFi.softAPIP();
@@ -68,6 +67,7 @@ static void stopAp() {
     s_dns_running = false;
   }
   WiFi.softAPdisconnect(true);
+  WiFi.mode(WIFI_STA);  // running AP and STA together costs airtime the BLE scan wants back
   s_ap_active = false;
   appLog("wifi: hotspot closed, station connection is stable");
 }
@@ -97,17 +97,15 @@ void begin(const core::Settings& s) {
   snprintf(s_hostname, sizeof s_hostname, "%s", s.str(core::S_HOSTNAME));
   WiFi.persistent(false);
   WiFi.setHostname(s_hostname);
-  WiFi.mode(WIFI_AP_STA);
+  WiFi.mode(WIFI_STA);  // startAp() switches to AP_STA if and when a hotspot is needed
   WiFi.setSleep(true);  // BLE and WiFi share one antenna on the C3
 
   loadCredentials();
   buildApSsid(s);
 
   if (s_ssid[0]) {
-    s_ap_was_up_at_boot = false;
     beginConnect();
   } else {
-    s_ap_was_up_at_boot = true;
     s_mode = Mode::Portal;
     startAp();
     appLog("wifi: no credentials stored, waiting on the hotspot");
@@ -140,9 +138,12 @@ void tick() {
         s_mode = Mode::Connecting;
         s_connect_started_ms = now;
         WiFi.reconnect();
-      } else if (s_ap_active && !s_ap_was_up_at_boot && now - s_station_since_ms > kApLingerMs) {
-        // Credentials already worked before this boot, so nobody is mid-setup on the hotspot.
-        stopAp();
+      } else if (s_ap_active) {
+        // The hotspot lingers after the station connects, so whoever configured it over the
+        // portal can see that it worked before their phone drops back to the house WiFi.
+        // A timeout of 0 means they want to keep it up for good.
+        const uint32_t linger_ms = (uint32_t)g_settings.num(core::S_AP_TIMEOUT_S) * 1000;
+        if (linger_ms > 0 && now - s_station_since_ms > linger_ms) stopAp();
       }
       break;
 
@@ -193,7 +194,6 @@ bool saveCredentials(const char* ssid_in, const char* pass_in) {
   }
 
   // Keep the hotspot up until the new connection is confirmed - a typo must not lock anyone out.
-  s_ap_was_up_at_boot = true;
   startAp();
   beginConnect();
   return true;
@@ -209,7 +209,6 @@ void forgetCredentials() {
   }
   WiFi.disconnect(false, true);
   s_mode = Mode::Portal;
-  s_ap_was_up_at_boot = true;
   startAp();
   appLog("wifi: credentials forgotten");
 }

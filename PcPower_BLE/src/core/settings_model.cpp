@@ -78,6 +78,10 @@ const SettingDef kSettingDefs[S_NUM_SETTINGS] = {
     {"on_fast_ms", I, 50, 3000, 300, nullptr, "Instant-on light", "ms", nullptr, "PC sense",
      "Unbroken light for this long switches to 'on' straight away."},
 
+    {"ap_timeout_s", I, 0, 3600, 60, nullptr, "Close hotspot after", "s", nullptr, "Network",
+     "How long the hotspot stays up once the board has joined your WiFi. It lingers so you can "
+     "confirm the connection worked before your phone drops back. 0 keeps it up permanently."},
+
     {"hostname", S, 1, 32, 0, "pcpower", "Hostname", "", nullptr, "Network",
      "Used for mDNS, so the board answers at http://<hostname>.local/"},
     {"ap_ssid", S, 0, 31, 0, "", "Hotspot name", "", nullptr, "Network",

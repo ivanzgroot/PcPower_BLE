@@ -22,7 +22,9 @@ enum SettingId : uint8_t {
   // PC sense
   S_SENSE_MODE, S_SLEEP_IS_OFF, S_SENSE_WINDOW_MS, S_ON_DUTY_PCT, S_OFF_DUTY_PCT,
   S_SPREAD_PCT, S_OFF_CONFIRM, S_ON_FAST_MS,
-  // Network - strings, and they must stay last and contiguous
+  // Network
+  S_AP_TIMEOUT_S,
+  // Strings, and they must stay last and contiguous
   S_HOSTNAME, S_AP_SSID, S_AP_PASS,
   S_NUM_SETTINGS
 };
