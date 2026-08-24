@@ -1,5 +1,6 @@
 build/
 tools/bin/
 tools/.arduino-data/
+tools/.arduino-user/
 tests/bin/
 *.o
