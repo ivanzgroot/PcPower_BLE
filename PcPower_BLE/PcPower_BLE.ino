@@ -36,7 +36,7 @@ void setup() {
   Serial.begin(115200);
   Serial.setTxTimeoutMs(0);  // with USB-CDC an unattached host would otherwise block writes
 
-  appLogBegin();
+  appBegin();
   SettingsStore::load(g_settings);
   DeviceStore::load(g_devices);
 

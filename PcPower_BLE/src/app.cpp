@@ -4,7 +4,7 @@
 
 #include "core/json_out.h"
 
-volatile bool g_devices_locked = false;
+SemaphoreHandle_t g_devices_mutex = nullptr;
 
 core::Settings g_settings;
 core::DeviceList g_devices;
@@ -13,8 +13,9 @@ core::RingLog g_log;
 static SemaphoreHandle_t s_log_mutex = nullptr;
 static uint32_t s_printed_total = 0;
 
-void appLogBegin() {
+void appBegin() {
   if (!s_log_mutex) s_log_mutex = xSemaphoreCreateMutex();
+  if (!g_devices_mutex) g_devices_mutex = xSemaphoreCreateMutex();
 }
 
 void appLog(const char* text) {

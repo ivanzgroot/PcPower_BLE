@@ -75,11 +75,14 @@ class ScanCallbacks : public NimBLEScanCallbacks {
       return;
     }
 
-    // The list is being edited from another task; skip this advertisement rather than walk it.
-    if (g_devices_locked) return;
+    if (!g_devices_mutex) return;
+    if (xSemaphoreTake(g_devices_mutex, pdMS_TO_TICKS(5)) != pdTRUE) return;
 
     const int index = g_devices.find(addr, type);
-    if (index < 0) return;  // not ours: the cheapest possible exit
+    if (index < 0) {
+      xSemaphoreGive(g_devices_mutex);
+      return;  // not ours: the cheapest possible exit
+    }
 
     const uint32_t absent = g_devices.markSeen((uint8_t)index, now, rssi);
 
@@ -104,6 +107,7 @@ class ScanCallbacks : public NimBLEScanCallbacks {
       s_pending_fire = index;
       s_pending_devices_dirty = true;
     }
+    xSemaphoreGive(g_devices_mutex);
   }
 
   // Fires once the scan response has arrived, so this is where a device name is available.

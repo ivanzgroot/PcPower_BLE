@@ -292,9 +292,9 @@ static void handleDeviceAdd() {
   }
 
   const String label = s_server.hasArg("label") ? s_server.arg("label") : String("Device");
-  g_devices_locked = true;
+  if (g_devices_mutex) xSemaphoreTake(g_devices_mutex, portMAX_DELAY);
   const int index = g_devices.add(addr, (uint8_t)type, label.c_str());
-  g_devices_locked = false;
+  if (g_devices_mutex) xSemaphoreGive(g_devices_mutex);
   if (index == -1) {
     sendError(400, "the device list is full");
     return;
@@ -314,14 +314,14 @@ static void handleDeviceUpdate() {
     sendError(400, "no such device");
     return;
   }
-  g_devices_locked = true;
+  if (g_devices_mutex) xSemaphoreTake(g_devices_mutex, portMAX_DELAY);
   if (s_server.hasArg("label")) g_devices.setLabel((uint8_t)index, s_server.arg("label").c_str());
   if (s_server.hasArg("enabled")) {
     long enabled = 1;
     argInt("enabled", &enabled);
     g_devices.setEnabled((uint8_t)index, enabled != 0);
   }
-  g_devices_locked = false;
+  if (g_devices_mutex) xSemaphoreGive(g_devices_mutex);
   DeviceStore::save(g_devices);
   sendOk();
 }
@@ -333,9 +333,9 @@ static void handleDeviceDelete() {
     return;
   }
   appLogf("devices: removed %s", g_devices.at((uint8_t)index).label);
-  g_devices_locked = true;
+  if (g_devices_mutex) xSemaphoreTake(g_devices_mutex, portMAX_DELAY);
   g_devices.remove((uint8_t)index);
-  g_devices_locked = false;
+  if (g_devices_mutex) xSemaphoreGive(g_devices_mutex);
   DeviceStore::save(g_devices);
   sendOk();
 }
@@ -373,9 +373,9 @@ static void handleLearnAccept() {
   String label = s_server.hasArg("label") ? s_server.arg("label") : String("");
   if (label.length() == 0) label = c.name[0] ? String(c.name) : String("Controller");
 
-  g_devices_locked = true;
+  if (g_devices_mutex) xSemaphoreTake(g_devices_mutex, portMAX_DELAY);
   const int added = g_devices.add(c.addr, c.addr_type, label.c_str());
-  g_devices_locked = false;
+  if (g_devices_mutex) xSemaphoreGive(g_devices_mutex);
   if (added == -1) {
     sendError(400, "the device list is full");
     return;
