@@ -15,6 +15,7 @@
 #include "src/net.h"
 #include "src/pc_sense.h"
 #include "src/power_out.h"
+#include "src/radio.h"
 #include "src/settings_store.h"
 #include "src/status_led.h"
 #include "src/web_server.h"
@@ -53,8 +54,8 @@ void setup() {
   delay(500);  // the only delay in the firmware: hold the boot self-test light long enough to see
 
   BleScan::begin(g_settings);
-  Net::begin(g_settings);
-  Web::begin();
+  Net::begin(g_settings);   // sets up, but leaves the radio off
+  Radio::begin(g_settings); // decides from here on which radio is powered
   Console::begin();
 }
 
@@ -79,16 +80,14 @@ static void updateStatusLed() {
 }
 
 void loop() {
-  Net::tick();
+  // Hands the antenna to whichever radio is useful right now, and powers the other one down.
+  Radio::tick();
+
+  Net::tick();   // both return immediately while the WiFi hardware is off
   Web::tick();
   Console::tick();
 
-  if (!Web::otaInProgress()) {
-    // Nothing can trigger while the PC runs, so give the antenna back to WiFi.
-    const bool pc_on = PcSense::state() == core::PcState::On;
-    BleScan::setPaused(pc_on && g_settings.flag(core::S_PAUSE_WHEN_ON));
-    BleScan::tick();
-  }
+  if (!Web::otaInProgress()) BleScan::tick();
 
   updateStatusLed();
   appLogPump();

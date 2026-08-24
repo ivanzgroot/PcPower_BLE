@@ -8,6 +8,7 @@
 #include "power_out.h"
 #include "settings_store.h"
 #include "status_led.h"
+#include "radio.h"
 #include "web_server.h"
 
 static char s_line[160];
@@ -46,8 +47,15 @@ static void printStatus() {
                 BleScan::paused() ? " (paused)" : "", (unsigned)BleScan::advertsSeen());
   Serial.printf("last check: %s\n", core::triggerReasonText(BleScan::lastReason()));
   Serial.printf("presses   : %u\n", (unsigned)PowerOut::pulseCount());
-  Serial.printf("wifi      : %s, ssid '%s', ip %s%s\n", Net::modeName(), Net::ssid(), Net::ip(),
-                Net::apActive() ? ", hotspot up" : "");
+  Serial.printf("radio     : %s, antenna belongs to %s\n",
+                Radio::exclusive() ? "exclusive" : "shared",
+                core::radioOwnerName(Radio::owner()));
+  if (Net::enabled()) {
+    Serial.printf("wifi      : %s, ssid '%s', ip %s%s\n", Net::modeName(), Net::ssid(), Net::ip(),
+                  Net::apActive() ? ", hotspot up" : "");
+  } else {
+    Serial.printf("wifi      : off (ssid '%s' stored)\n", Net::ssid());
+  }
   Serial.printf("devices   : %u known\n", (unsigned)g_devices.count());
   Serial.printf("ota       : running from %s, %s\n", Web::otaPartition(),
                 Web::otaCapable() ? "a spare slot is available"

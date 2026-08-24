@@ -412,7 +412,13 @@ function renderStatus(){
   ]);
 
   var mode = net.mode || "?";
+  var rd = s.radio || {};
+  var radioRow = rd.mode === "exclusive"
+    ? chip("exclusive", "ok") + ' <span class="sub">antenna is the ' +
+      (rd.owner === "wifi" ? "web interface" : "scanner") + "'s</span>"
+    : chip("shared") + ' <span class="sub">both radios on at once</span>';
   $("netkv").innerHTML = kv([
+    ["Radio", radioRow],
     ["Mode", chip(mode, mode === "station" ? "ok" : mode === "connecting" ? "warn" : "")],
     ["Network", esc(net.ssid || "none")],
     ["Address", esc(net.ip || "none")],

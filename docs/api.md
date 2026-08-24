@@ -35,7 +35,8 @@ curl -s http://pcpower.local/api/status
 {
   "pc": {"state":"off","raw":"off","duty":0,"spread":0,"ready":true,"lit":false,
          "ms_since_off":428113,"mode":"auto"},
-  "net": {"mode":"station","ssid":"home","ip":"192.168.1.42","rssi":-58,
+  "radio": {"mode":"exclusive","owner":"wifi","wifi":true,"scanning":false,"settled":true},
+  "net": {"enabled":true,"mode":"station","ssid":"home","ip":"192.168.1.42","rssi":-58,
           "ap_active":false,"ap_ssid":"PcPower-3F2A","hostname":"pcpower",
           "has_credentials":true},
   "scan": {"scanning":true,"paused":false,"inhibited":false,"adverts":18422,
@@ -48,6 +49,11 @@ curl -s http://pcpower.local/api/status
   "devices":[ ... see GET /api/devices ... ]
 }
 ```
+
+`radio.mode` is `exclusive` when the board is giving the whole antenna to one radio at a time, and
+`shared` when both run together. `radio.owner` says which one currently has it, and `settled` is
+false while a change in PC state is waiting out the five-second dwell. `net.enabled` is false when
+the WiFi hardware is powered down, in which case nothing on this API is reachable at all.
 
 `ota.capable` is false when the board's partition table has no second app slot, in which case
 `POST /update` will refuse the upload immediately rather than failing partway through.

@@ -141,6 +141,37 @@ and must never be mistaken for a shutdown.
 If your power LED behaves unusually, the Status tab shows the live duty and spread figures the
 classifier is working from, and every threshold is adjustable.
 
+## One radio at a time
+
+The ESP32-C3 has a single antenna shared between WiFi and Bluetooth, and running both costs each
+of them: the scan misses advertisements while WiFi transmits, and the web interface stalls while
+the scan is listening. The two jobs are never needed simultaneously, though. Nothing can trigger a
+wake while the PC is already running, and nobody is browsing the settings page while the PC is off.
+
+So by default the board gives the whole radio to whichever one is useful:
+
+- **PC off, asleep, or unknown:** WiFi is switched off entirely. The scanner has the antenna to
+  itself.
+- **PC running:** scanning stops and WiFi comes up.
+
+The consequence is worth being clear about: **the web interface only exists while the PC is on.**
+If you need to reach the board, press the power button on the case. The PC comes up, the board sees
+its power LED, and WiFi follows a few seconds later. Firmware updates are likewise a PC-on activity.
+Setting up a fresh board works the same way, since with no stored credentials the hotspot appears
+once WiFi is enabled.
+
+When WiFi comes up it gets five attempts spread over sixty seconds to join the stored network. If
+they all fail it raises the hotspot and keeps trying the real network every five minutes in the
+background. All three numbers are configurable under Settings → Radio.
+
+Switching only happens after the PC state has held for five seconds, so a flickering power LED
+cannot make the board tear WiFi up and down repeatedly, and an update in progress is never
+interrupted by the PC being switched off.
+
+Turn `radio_exclusive` off to run both radios at once, which is how earlier versions behaved. It is
+also ignored automatically when `sense_mode` is `force_off`: with no sense wire the PC never reads
+as on, so exclusive mode would switch WiFi off and never switch it back.
+
 ## Status LED
 
 | Pattern | Meaning |
@@ -196,9 +227,18 @@ The other guards still apply, but it will happily press the button on a running 
 **The PC wakes again right after you shut it down.** Your controller keeps advertising once the host
 is gone. Enable `require_absence` under Guards.
 
-**The web interface is sluggish while the PC is off.** That is the BLE scan competing with WiFi for
-a single antenna. Raise `scan_intvl_ms` or lower `scan_window_ms`. The firmware already caps the
-window at 60% of the interval whenever WiFi is connected.
+**The web interface is unreachable while the PC is off.** That is exclusive radio mode working as
+intended; see "One radio at a time" above. Turn the PC on to reach the board, or set
+`radio_exclusive` to off over the serial console.
+
+**The web interface is sluggish while the PC is off, with `radio_exclusive` turned off.** That is
+the BLE scan competing with WiFi for a single antenna. Raise `scan_intvl_ms` or lower
+`scan_window_ms`. The firmware already caps the window at 60% of the interval whenever WiFi is
+connected.
+
+**The sense wire has failed and the board is unreachable.** In exclusive mode a dead sense wire
+reads as "PC off" forever, so WiFi never comes up. Connect over USB at 115200 baud and run
+`set radio_exclusive 0`, or `set sense_mode force_off`, which also disables exclusive mode.
 
 **A firmware update fails with "Partition Could Not be Found".** The board is running a partition
 table with only one app slot, so there is nowhere to write a new image. This happens if it was

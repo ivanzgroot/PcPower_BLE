@@ -44,6 +44,18 @@ const SettingDef kSettingDefs[S_NUM_SETTINGS] = {
     {"pause_when_on", B, 0, 1, 1, nullptr, "Pause scan while PC is on", "", nullptr, "Scanning",
      "Nothing can trigger while the PC runs, so the antenna goes to WiFi instead."},
 
+    {"radio_exclusive", B, 0, 1, 1, nullptr, "One radio at a time", "", nullptr, "Radio",
+     "The board has a single antenna. With this on, WiFi is switched off entirely while the PC "
+     "is off so the scanner gets the whole radio, and scanning stops while the PC runs so the "
+     "web interface does. Off runs both at once, which is slower at both jobs. Note the web "
+     "interface is unreachable while the PC is off."},
+    {"wifi_tries", I, 1, 10, 5, nullptr, "Connection attempts", "", nullptr, "Radio",
+     "How many times to try the stored network before falling back to the hotspot."},
+    {"wifi_window_s", I, 10, 600, 60, nullptr, "Attempt window", "s", nullptr, "Radio",
+     "Total time those attempts share. Each one gets an equal slice to wait for the router."},
+    {"wifi_retry_s", I, 60, 3600, 300, nullptr, "Retry the network every", "s", nullptr, "Radio",
+     "While the hotspot is up and credentials are stored, how often to try the real network."},
+
     {"cooldown_ms", I, 0, 600000, 10000, nullptr, "Cooldown after a press", "ms", nullptr,
      "Guards", "Stops one advertising burst from pressing the button twice."},
     {"postoff_ms", I, 0, 600000, 30000, nullptr, "Block after shutdown", "ms", nullptr, "Guards",

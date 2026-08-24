@@ -12,6 +12,7 @@
 #include "net.h"
 #include "pc_sense.h"
 #include "power_out.h"
+#include "radio.h"
 #include "settings_store.h"
 #include "status_led.h"
 #include "web_ui.h"
@@ -149,6 +150,9 @@ static void handleStatus() {
 
   core::jsonAppend(s_buf, sizeof s_buf, &pos, "\"net\":");
   pos += Net::statusToJson(s_buf + pos, sizeof s_buf - pos);
+
+  core::jsonAppend(s_buf, sizeof s_buf, &pos, ",\"radio\":");
+  pos += Radio::toJson(s_buf + pos, sizeof s_buf - pos);
 
   const core::TriggerReason reason = BleScan::lastReason();
   core::jsonAppend(s_buf, sizeof s_buf, &pos,
@@ -589,6 +593,7 @@ void begin() {
 }
 
 void tick() {
+  if (!Net::enabled()) return;
   s_server.handleClient();
   if (s_reboot_at != 0 && (int32_t)(millis() - s_reboot_at) >= 0) {
     Serial.flush();

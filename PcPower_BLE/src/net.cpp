@@ -7,17 +7,17 @@
 
 #include "app.h"
 #include "core/json_out.h"
+#include "core/radio_policy.h"
 
 static const char* kNamespace = "wifi";
-static constexpr uint32_t kConnectTimeoutMs = 20000;
-static constexpr uint32_t kRetryIntervalMs = 60000;
 
-static Net::Mode s_mode = Net::Mode::Booting;
+static Net::Mode s_mode = Net::Mode::Off;
+static core::ConnectBudget s_budget;
+static bool s_enabled = false;
 static DNSServer s_dns;
 static bool s_dns_running = false;
 static bool s_ap_active = false;
 static bool s_mdns_started = false;
-static uint32_t s_connect_started_ms = 0;
 static uint32_t s_last_attempt_ms = 0;
 static uint32_t s_station_since_ms = 0;
 
@@ -73,11 +73,15 @@ static void stopAp() {
 }
 
 static void beginConnect() {
+  const uint32_t now = millis();
   s_mode = Net::Mode::Connecting;
-  s_connect_started_ms = millis();
-  s_last_attempt_ms = s_connect_started_ms;
+  s_budget.begin((uint8_t)g_settings.num(core::S_WIFI_TRIES),
+                 (uint32_t)g_settings.num(core::S_WIFI_WINDOW_S) * 1000);
+  s_budget.start(now);
   WiFi.begin(s_ssid, s_pass);
-  appLogf("wifi: connecting to '%s'", s_ssid);
+  s_budget.recordAttempt(now);
+  appLogf("wifi: connecting to '%s', %d tries over %ds", s_ssid,
+          (int)g_settings.num(core::S_WIFI_TRIES), (int)g_settings.num(core::S_WIFI_WINDOW_S));
 }
 
 static void onConnected() {
@@ -96,12 +100,23 @@ namespace Net {
 void begin(const core::Settings& s) {
   snprintf(s_hostname, sizeof s_hostname, "%s", s.str(core::S_HOSTNAME));
   WiFi.persistent(false);
+  loadCredentials();
+  buildApSsid(s);
+  WiFi.mode(WIFI_OFF);
+  s_enabled = false;
+  s_mode = Mode::Off;
+  // The radio stays off until Radio::tick() decides it is wanted. In shared mode that is
+  // immediately; in exclusive mode it is when the PC comes up.
+}
+
+void resume() {
+  if (s_enabled) return;
+  s_enabled = true;
   WiFi.setHostname(s_hostname);
   WiFi.mode(WIFI_STA);  // startAp() switches to AP_STA if and when a hotspot is needed
   WiFi.setSleep(true);  // BLE and WiFi share one antenna on the C3
-
-  loadCredentials();
-  buildApSsid(s);
+  s_ap_active = false;
+  s_mdns_started = false;
 
   if (s_ssid[0]) {
     beginConnect();
@@ -112,32 +127,63 @@ void begin(const core::Settings& s) {
   }
 }
 
+void shutdown() {
+  if (!s_enabled) return;
+  if (s_mdns_started) {
+    MDNS.end();
+    s_mdns_started = false;
+  }
+  if (s_dns_running) {
+    s_dns.stop();
+    s_dns_running = false;
+  }
+  if (s_ap_active) {
+    WiFi.softAPdisconnect(true);
+    s_ap_active = false;
+  }
+  WiFi.disconnect(true, false);
+  WiFi.mode(WIFI_OFF);
+  s_enabled = false;
+  s_mode = Mode::Off;
+  appLog("wifi: radio off, the scanner has the antenna");
+}
+
+bool enabled() { return s_enabled; }
+
 void tick() {
+  if (!s_enabled) return;
   if (s_dns_running) s_dns.processNextRequest();
 
   const uint32_t now = millis();
   const bool connected = WiFi.status() == WL_CONNECTED;
 
   switch (s_mode) {
+    case Mode::Off:
     case Mode::Booting:
       break;
 
     case Mode::Connecting:
       if (connected) {
         onConnected();
-      } else if (now - s_connect_started_ms > kConnectTimeoutMs) {
-        appLog("wifi: could not connect, opening the hotspot");
+      } else if (s_budget.exhausted(now)) {
+        appLogf("wifi: %u attempts failed, opening the hotspot",
+                (unsigned)s_budget.attempts());
         s_mode = Mode::Portal;
+        s_last_attempt_ms = now;
         startAp();
+      } else if (s_budget.shouldAttempt(now)) {
+        WiFi.disconnect();
+        WiFi.begin(s_ssid, s_pass);
+        s_budget.recordAttempt(now);
+        appLogf("wifi: attempt %u of %d", (unsigned)s_budget.attempts(),
+                (int)g_settings.num(core::S_WIFI_TRIES));
       }
       break;
 
     case Mode::Station:
       if (!connected) {
         appLog("wifi: connection lost");
-        s_mode = Mode::Connecting;
-        s_connect_started_ms = now;
-        WiFi.reconnect();
+        beginConnect();
       } else if (s_ap_active) {
         // The hotspot lingers after the station connects, so whoever configured it over the
         // portal can see that it worked before their phone drops back to the house WiFi.
@@ -147,16 +193,19 @@ void tick() {
       }
       break;
 
-    case Mode::Portal:
+    case Mode::Portal: {
       if (connected) {
         onConnected();
-      } else if (s_ssid[0] && now - s_last_attempt_ms > kRetryIntervalMs) {
+        break;
+      }
+      const uint32_t retry_ms = (uint32_t)g_settings.num(core::S_WIFI_RETRY_S) * 1000;
+      if (s_ssid[0] && now - s_last_attempt_ms > retry_ms) {
         s_last_attempt_ms = now;
-        WiFi.begin(s_ssid, s_pass);  // keep trying quietly, hotspot stays up
-        s_connect_started_ms = now;
-        s_mode = Mode::Connecting;
+        appLog("wifi: retrying the stored network, hotspot stays up");
+        beginConnect();  // the hotspot is left running throughout
       }
       break;
+    }
   }
 }
 
@@ -164,6 +213,7 @@ Mode mode() { return s_mode; }
 
 const char* modeName() {
   switch (s_mode) {
+    case Mode::Off: return "off";
     case Mode::Booting: return "booting";
     case Mode::Connecting: return "connecting";
     case Mode::Station: return "station";
@@ -172,7 +222,7 @@ const char* modeName() {
   return "unknown";
 }
 
-bool staConnected() { return WiFi.status() == WL_CONNECTED; }
+bool staConnected() { return s_enabled && WiFi.status() == WL_CONNECTED; }
 const char* ip() { return staConnected() ? s_ip : "192.168.4.1"; }
 const char* ssid() { return s_ssid; }
 int rssi() { return staConnected() ? WiFi.RSSI() : 0; }
@@ -246,7 +296,8 @@ size_t scanResultsToJson(char* buf, size_t len) {
 
 size_t statusToJson(char* buf, size_t len) {
   size_t pos = 0;
-  core::jsonAppend(buf, len, &pos, "{\"mode\":\"%s\",\"ssid\":\"", modeName());
+  core::jsonAppend(buf, len, &pos, "{\"enabled\":%s,\"mode\":\"%s\",\"ssid\":\"",
+                   s_enabled ? "true" : "false", modeName());
   core::jsonAppendEscaped(buf, len, &pos, s_ssid);
   core::jsonAppend(buf, len, &pos,
                    "\",\"ip\":\"%s\",\"rssi\":%d,\"ap_active\":%s,\"ap_ssid\":\"%s\","

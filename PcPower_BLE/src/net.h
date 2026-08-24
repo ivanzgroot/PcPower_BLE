@@ -8,10 +8,16 @@
 #include "core/settings_model.h"
 
 namespace Net {
-enum class Mode : uint8_t { Booting, Connecting, Station, Portal };
+enum class Mode : uint8_t { Off, Booting, Connecting, Station, Portal };
 
-void begin(const core::Settings& s);
+void begin(const core::Settings& s);  // one-time setup; leaves the radio off
 void tick();
+
+// Radio owns these: the WiFi hardware is switched off entirely while the scanner has the
+// antenna, and brought back when the PC comes up.
+void resume();
+void shutdown();
+bool enabled();
 
 Mode mode();
 const char* modeName();
