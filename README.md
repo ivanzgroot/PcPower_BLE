@@ -230,7 +230,7 @@ PcPower_BLE/
 web/index.html           the interface
 tools/                   build, flash, test and embed scripts
 tests/                   native unit tests
-docs/                    wiring, API reference, design spec and implementation plan
+docs/                    wiring guide and API reference
 ```
 
 ## Security posture
