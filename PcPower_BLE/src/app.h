@@ -11,7 +11,7 @@
 #include "core/settings_model.h"
 #include "core/trigger.h"
 
-inline constexpr const char* kVersion = "1.2.1";
+inline constexpr const char* kVersion = "1.2.2";
 
 // Mutex protecting g_devices from concurrent access by the main task and the BLE host task.
 extern SemaphoreHandle_t g_devices_mutex;
