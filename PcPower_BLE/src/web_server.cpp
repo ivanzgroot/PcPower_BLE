@@ -47,7 +47,7 @@ static void otaRelease() {
   s_ota_percent = 0;
   BleScan::setInhibited(false);
   BleScan::setPaused(false);  // loop() re-pauses on its own if the PC is running
-  Net::setPowerSave(!g_settings.flag(core::S_RADIO_EXCLUSIVE));
+  Net::setPowerSave(true);
 }
 
 // --- request guards --------------------------------------------------------

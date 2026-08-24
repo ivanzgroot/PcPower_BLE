@@ -11,7 +11,7 @@
 #include "core/settings_model.h"
 #include "core/trigger.h"
 
-inline constexpr const char* kVersion = "1.2.0";
+inline constexpr const char* kVersion = "1.2.1";
 
 // Set while the device list is being edited from loop() context, so the BLE host task skips it
 // instead of walking a list that is being reshuffled underneath it.
