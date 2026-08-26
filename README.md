@@ -261,6 +261,28 @@ of the session that just ended - uptime, lowest heap, largest block, and all thr
 problem that only shows up after a long run leaves a trace even though the live log did not
 survive the power cycle.
 
+**The dashboard is stuck saying "waiting for the device" and never shows anything.** This means
+the page loaded once but has never received a single reply since - the board has no network
+presence for the browser to reach, full stop, and no firmware can make a page appear out of a
+connection that genuinely does not exist right now. Two different situations look identical from
+the browser and need different answers:
+
+- *A momentary, real gap* - the board briefly lost the signal and is quietly retrying the same
+  network. As of this version, a connection that has succeeded once never gets abandoned for a
+  hotspot on a rough patch; it keeps trying the network it knows works, indefinitely, and the page
+  finds it again on its own once the signal returns. Older versions treated any 60-second rough
+  patch as a reason to give up and raise a hotspot at a different address, which silently orphaned
+  whatever tab was open - that was a firmware bug, not a placement problem, and is fixed now.
+- *The signal is too weak to sustain a connection at all* - a metal case is a fair amount of
+  screening at 2.4GHz even with one glass panel, depending on where the antenna sits relative to
+  it. No amount of retry logic fixes this; it needs a clearer RF path (reposition the board, run
+  an external antenna lead through the panel, or use a case cutout nearer the router).
+
+Tell these apart with the serial console, which works over USB regardless of what WiFi is doing:
+run `status` and read the reported `wifi` line and its RSSI. A number in the `-60` to `-75` range
+that comes and goes is the first case. Anything worse than roughly `-85`, or no association at
+all, is the second - that is an RF problem, not a bug to file.
+
 **A firmware update fails with "Partition Could Not be Found".** The board is running a partition
 table with only one app slot, so there is nowhere to write a new image. This happens if it was
 flashed from the Arduino IDE with a scheme such as "Huge APP (3MB No OTA)", which is a tempting

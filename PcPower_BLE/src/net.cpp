@@ -22,6 +22,8 @@ static bool s_mdns_started = false;
 static uint32_t s_last_attempt_ms = 0;
 static uint32_t s_last_ap_attempt_ms = 0;
 static bool s_ap_failure_logged = false;
+static bool s_recovering = false;      // has this radio session ever connected?
+static uint32_t s_recovering_logged_ms = 0;
 static constexpr uint32_t kApRetryMs = 5000;
 static uint32_t s_station_since_ms = 0;
 
@@ -97,6 +99,7 @@ static void beginConnect() {
 }
 
 static void onConnected() {
+  s_recovering = true;  // the credentials work; a later drop is never treated as onboarding again
   s_mode = Net::Mode::Station;
   s_station_since_ms = millis();
   snprintf(s_ip, sizeof s_ip, "%s", WiFi.localIP().toString().c_str());
@@ -124,6 +127,7 @@ void begin(const core::Settings& s) {
 void resume() {
   if (s_enabled) return;
   s_enabled = true;
+  s_recovering = false;
   WiFi.setHostname(s_hostname);
   WiFi.mode(WIFI_STA);  // startAp() switches to AP_STA if and when a hotspot is needed
   // Disabling power save (WIFI_PS_NONE) causes UniFi access points to drop the connection
@@ -184,11 +188,24 @@ void tick() {
       if (connected) {
         onConnected();
       } else if (s_budget.exhausted(now)) {
-        appLogf("wifi: %u attempts failed, opening the hotspot",
-                (unsigned)s_budget.attempts());
-        s_mode = Mode::Portal;
-        s_last_attempt_ms = now;
-        if (!startAp()) appLog("wifi: hotspot failed to start, retrying every 5s");
+        if (s_recovering) {
+          // This network has worked before, so a rough patch - the usual cause is a weak
+          // signal, not wrong credentials - is never treated as a reason to abandon it for a
+          // hotspot at a different address. Keep trying the same network indefinitely instead;
+          // a stray tab left open must find the board again on its own once the signal recovers.
+          s_budget.start(now);
+          if (now - s_recovering_logged_ms > 120000) {
+            s_recovering_logged_ms = now;
+            appLogf("wifi: still trying to rejoin '%s' - no hotspot, it has connected before",
+                    s_ssid);
+          }
+        } else {
+          appLogf("wifi: %u attempts failed, opening the hotspot",
+                  (unsigned)s_budget.attempts());
+          s_mode = Mode::Portal;
+          s_last_attempt_ms = now;
+          if (!startAp()) appLog("wifi: hotspot failed to start, retrying every 5s");
+        }
       } else if (s_budget.shouldAttempt(now)) {
         WiFi.disconnect();
         WiFi.begin(s_ssid, s_pass);
