@@ -8,6 +8,7 @@
 #include "power_out.h"
 #include "settings_store.h"
 #include "status_led.h"
+#include "diagnostics.h"
 #include "radio.h"
 #include "web_server.h"
 
@@ -57,6 +58,9 @@ static void printStatus() {
     Serial.printf("wifi      : off (ssid '%s' stored)\n", Net::ssid());
   }
   Serial.printf("devices   : %u known\n", (unsigned)g_devices.count());
+  Serial.printf("memory    : %u free now, %u free at the lowest, largest block %u\n",
+                (unsigned)ESP.getFreeHeap(), (unsigned)Diag::minFreeHeapBytes(),
+                (unsigned)Diag::largestFreeBlockBytes());
   Serial.printf("ota       : running from %s, %s\n", Web::otaPartition(),
                 Web::otaCapable() ? "a spare slot is available"
                                   : "NO spare slot - this board cannot update over the air");

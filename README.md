@@ -248,6 +248,17 @@ radios are running together.
 reads as "PC off" forever, so WiFi never comes up. Connect over USB at 115200 baud and run
 `set radio_exclusive 0`, or `set sense_mode force_off`, which also disables exclusive mode.
 
+**The board is unreachable after a day or more of uptime, or you find a hotspot that never
+actually appeared.** The System tab and the serial `status` command now report free heap (current
+and lowest-ever), the largest single block the allocator can still hand out, and three counters:
+how many times the BLE scan needed a soft restart, how many times the whole BLE stack needed
+reinitialising, and how many times the WiFi hotspot failed to start. A failed hotspot start is
+retried automatically every 5 seconds and no longer silently claimed as working. If you have to
+power-cycle the board before you can look at any of this, the *next* boot logs a one-line summary
+of the session that just ended - uptime, lowest heap, largest block, and all three counters - so a
+problem that only shows up after a long run leaves a trace even though the live log did not
+survive the power cycle.
+
 **A firmware update fails with "Partition Could Not be Found".** The board is running a partition
 table with only one app slot, so there is nowhere to write a new image. This happens if it was
 flashed from the Arduino IDE with a scheme such as "Huge APP (3MB No OTA)", which is a tempting

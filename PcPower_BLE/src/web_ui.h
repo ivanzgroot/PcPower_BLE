@@ -431,11 +431,14 @@ function renderStatus(){
     ["Hotspot", net.ap_active ? esc(net.ap_ssid || "up") + " (up)" : "off"],
     ["Hostname", esc((net.hostname || "pcpower") + ".local")]
   ]);
+  var diag = s.diag || {};
   $("syskv").innerHTML = kv([
     ["Uptime", esc(dur(s.uptime_ms))],
-    ["Free heap", esc(bytes(s.heap))],
+    ["Free heap", esc(bytes(s.heap)) + ` <span class="sub">(${esc(bytes(diag.min_heap))} at the lowest)</span>`],
+    ["Largest free block", esc(bytes(diag.largest_block))],
     ["Firmware", esc(s.version || "?")],
-    ["Known devices", String((s.devices || []).length)]
+    ["Known devices", String((s.devices || []).length)],
+    ["Watchdog restarts", (diag.ble_soft_restarts || 0) + " scan / " + (diag.ble_hard_restarts || 0) + " full, " + (diag.ap_start_failures || 0) + " AP failures"]
   ]);
   $("hdrsub").textContent = (net.ip || (net.hostname || "") + ".local") +
                             (s.version ? "  v" + s.version : "");

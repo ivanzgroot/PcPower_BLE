@@ -12,6 +12,7 @@
 #include "net.h"
 #include "pc_sense.h"
 #include "power_out.h"
+#include "diagnostics.h"
 #include "radio.h"
 #include "settings_store.h"
 #include "status_led.h"
@@ -183,6 +184,10 @@ static void handleStatus() {
                    esp_ota_get_running_partition() ? esp_ota_get_running_partition()->label : "?",
                    (unsigned)(otaTargetPartition() ? otaTargetPartition()->size : 0),
                    (unsigned)millis(), (unsigned)ESP.getFreeHeap(), kVersion);
+
+  core::jsonAppend(s_buf, sizeof s_buf, &pos, "\"diag\":");
+  pos += Diag::toJson(s_buf + pos, sizeof s_buf - pos);
+  core::jsonAppend(s_buf, sizeof s_buf, &pos, ",\"devices\":");
   pos += g_devices.toJson(s_buf + pos, sizeof s_buf - pos, millis());
   core::jsonAppend(s_buf, sizeof s_buf, &pos, "}");
   sendJson(200, s_buf);

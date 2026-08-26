@@ -12,6 +12,7 @@
 #include "src/app.h"
 #include "src/ble_scan.h"
 #include "src/console.h"
+#include "src/diagnostics.h"
 #include "src/device_store.h"
 #include "src/net.h"
 #include "src/pc_sense.h"
@@ -61,6 +62,7 @@ void setup() {
   appLogf("boot: v%s, %u known devices, out=GPIO%d sense=GPIO%d", kVersion,
           (unsigned)g_devices.count(), (int)g_settings.num(core::S_PIN_OUT),
           (int)g_settings.num(core::S_PIN_SENSE));
+  Diag::begin();  // logs what the previous session looked like right before it ended
 
   delay(500);  // the only delay in the firmware: hold the boot self-test light long enough to see
 
@@ -93,6 +95,7 @@ static void updateStatusLed() {
 void loop() {
   // Hands the antenna to whichever radio is useful right now, and powers the other one down.
   Radio::tick();
+  Diag::tick();
 
   Net::tick();   // both return immediately while the WiFi hardware is off
   Web::tick();

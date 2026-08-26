@@ -8,6 +8,7 @@
 #include "app.h"
 #include "core/json_out.h"
 #include "core/radio_policy.h"
+#include "diagnostics.h"
 
 static const char* kNamespace = "wifi";
 
@@ -19,6 +20,9 @@ static bool s_dns_running = false;
 static bool s_ap_active = false;
 static bool s_mdns_started = false;
 static uint32_t s_last_attempt_ms = 0;
+static uint32_t s_last_ap_attempt_ms = 0;
+static bool s_ap_failure_logged = false;
+static constexpr uint32_t kApRetryMs = 5000;
 static uint32_t s_station_since_ms = 0;
 
 static char s_ssid[33] = {0};
@@ -48,16 +52,24 @@ static void buildApSsid(const core::Settings& s) {
   snprintf(s_ap_ssid, sizeof s_ap_ssid, "PcPower-%02X%02X", mac[4], mac[5]);
 }
 
-static void startAp() {
-  if (s_ap_active) return;
+// Returns whether the hotspot actually came up. WiFi.softAP() can fail - most plausibly under
+// memory pressure - and previously this was never checked: s_ap_active was set unconditionally,
+// so a failed AP was indistinguishable from a working one right up until someone tried to join
+// it and found nothing there.
+static bool startAp() {
+  if (s_ap_active) return true;
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(s_ap_ssid, g_settings.str(core::S_AP_PASS));
+  if (!WiFi.softAP(s_ap_ssid, g_settings.str(core::S_AP_PASS))) {
+    Diag::noteApStartFailure();
+    return false;  // tick() retries; see kApRetryMs below
+  }
   s_ap_active = true;
   const IPAddress ip = WiFi.softAPIP();
   s_dns.setErrorReplyCode(DNSReplyCode::NoError);
   s_dns.start(53, "*", ip);  // captive portal: every lookup lands on us
   s_dns_running = true;
   appLogf("wifi: hotspot '%s' up at %s", s_ap_ssid, ip.toString().c_str());
+  return true;
 }
 
 static void stopAp() {
@@ -124,8 +136,8 @@ void resume() {
     beginConnect();
   } else {
     s_mode = Mode::Portal;
-    startAp();
-    appLog("wifi: no credentials stored, waiting on the hotspot");
+    if (!startAp()) appLog("wifi: hotspot failed to start, retrying every 5s");
+    else appLog("wifi: no credentials stored, waiting on the hotspot");
   }
 }
 
@@ -176,7 +188,7 @@ void tick() {
                 (unsigned)s_budget.attempts());
         s_mode = Mode::Portal;
         s_last_attempt_ms = now;
-        startAp();
+        if (!startAp()) appLog("wifi: hotspot failed to start, retrying every 5s");
       } else if (s_budget.shouldAttempt(now)) {
         WiFi.disconnect();
         WiFi.begin(s_ssid, s_pass);
@@ -203,6 +215,20 @@ void tick() {
       if (connected) {
         onConnected();
         break;
+      }
+      if (!s_ap_active) {
+        // The hotspot this mode promises is not actually there. Retry it on its own schedule -
+        // independent of whether the stored network is also being retried - so a transient
+        // failure recovers in seconds rather than needing a reboot to notice.
+        if (now - s_last_ap_attempt_ms >= kApRetryMs) {
+          s_last_ap_attempt_ms = now;
+          if (startAp()) {
+            s_ap_failure_logged = false;
+          } else if (!s_ap_failure_logged) {
+            s_ap_failure_logged = true;
+            appLog("wifi: hotspot failed to start, retrying every 5s");
+          }
+        }
       }
       const uint32_t retry_ms = (uint32_t)g_settings.num(core::S_WIFI_RETRY_S) * 1000;
       if (s_ssid[0] && now - s_last_attempt_ms > retry_ms) {
@@ -250,7 +276,7 @@ bool saveCredentials(const char* ssid_in, const char* pass_in) {
   }
 
   // Keep the hotspot up until the new connection is confirmed - a typo must not lock anyone out.
-  startAp();
+  if (!startAp()) appLog("wifi: hotspot failed to start, retrying every 5s");
   beginConnect();
   return true;
 }
@@ -265,7 +291,7 @@ void forgetCredentials() {
   }
   WiFi.disconnect(false, true);
   s_mode = Mode::Portal;
-  startAp();
+  if (!startAp()) appLog("wifi: hotspot failed to start, retrying every 5s");
   appLog("wifi: credentials forgotten");
 }
 

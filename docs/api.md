@@ -45,6 +45,8 @@ curl -s http://pcpower.local/api/status
   "pulse": {"count":3,"ms_since_last":428601,"active":false},
   "learn": {"active":false,"remaining_ms":0},
   "ota": {"running":false,"percent":0,"capable":true,"partition":"app0","slot_bytes":1966080},
+  "diag": {"min_heap":178204,"largest_block":110592,"ble_soft_restarts":0,"ble_hard_restarts":0,
+           "ap_start_failures":0},
   "uptime_ms":431204, "heap":198432, "version":"1.0.0",
   "devices":[ ... see GET /api/devices ... ]
 }
@@ -54,6 +56,14 @@ curl -s http://pcpower.local/api/status
 `shared` when both run together. `radio.owner` says which one currently has it, and `settled` is
 false while a change in PC state is waiting out the five-second dwell. `net.enabled` is false when
 the WiFi hardware is powered down, in which case nothing on this API is reachable at all.
+
+`diag` is a running record meant to catch problems that only appear after long uptime: `min_heap`
+is the lowest free heap has ever been since boot, `largest_block` is the biggest single
+allocation the heap could satisfy right now (a better signal than free heap alone when the
+problem is fragmentation rather than exhaustion), and the three restart counters track how often
+the BLE watchdog or the WiFi hotspot needed to recover on their own. This same snapshot is written
+to flash every five minutes, so if the board has to be power-cycled before anyone can look at it,
+the next boot logs what the previous session's numbers were just before it ended.
 
 `ota.capable` is false when the board's partition table has no second app slot, in which case
 `POST /update` will refuse the upload immediately rather than failing partway through.

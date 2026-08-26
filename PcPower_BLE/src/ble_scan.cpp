@@ -4,6 +4,7 @@
 
 #include "app.h"
 #include "core/radio_policy.h"
+#include "diagnostics.h"
 #include "device_store.h"
 #include "pc_sense.h"
 #include "power_out.h"
@@ -261,11 +262,13 @@ void tick() {
       if (s_restart_count >= 3) {
         appLog("ble: no adverts after 3 restarts, reinitialising the stack");
         s_restart_count = 0;
+        Diag::noteBleHardRestart();
         NimBLEDevice::deinit(true);
         s_scan = nullptr;
         begin(g_settings);
       } else {
         appLogf("ble: %u s without an advert, restarting the scan", (unsigned)(quiet / 1000));
+        Diag::noteBleSoftRestart();
         startScan();
       }
     } else {
