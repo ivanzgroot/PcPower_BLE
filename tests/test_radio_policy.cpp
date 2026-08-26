@@ -165,10 +165,13 @@ TEST(radio_arbiter_lets_an_update_through_without_waiting) {
 
 // --- the scan duty cycle ----------------------------------------------------
 
-TEST(scan_window_is_unthrottled_when_ble_has_the_antenna) {
-  // Exclusive mode powers WiFi down while the scanner runs, so there is nothing to yield to.
-  CHECK_EQ(core::effectiveScanWindowMs(200, 200, false), 200);   // 100% duty
-  CHECK_EQ(core::effectiveScanWindowMs(200, 60, false), 60);
+TEST(scan_window_is_forced_to_full_duty_when_ble_has_the_antenna) {
+  // Exclusive mode powers WiFi down while the scanner runs, so there is nothing to yield to -
+  // and nothing to gain by leaving a gap. The configured window is ignored outright, not just
+  // capped: this is what "most aggressive possible" means when BLE owns the whole antenna.
+  CHECK_EQ(core::effectiveScanWindowMs(200, 200, false), 200);
+  CHECK_EQ(core::effectiveScanWindowMs(200, 60, false), 200);   // configured window overridden
+  CHECK_EQ(core::effectiveScanWindowMs(30, 5, false), 30);
 }
 
 TEST(scan_window_yields_to_wifi_only_while_actually_sharing) {
@@ -177,14 +180,15 @@ TEST(scan_window_yields_to_wifi_only_while_actually_sharing) {
 }
 
 TEST(scan_window_never_exceeds_the_interval) {
-  CHECK_EQ(core::effectiveScanWindowMs(200, 500, false), 200);
+  CHECK_EQ(core::effectiveScanWindowMs(200, 500, false), 200);   // forced to full duty anyway
   CHECK_EQ(core::effectiveScanWindowMs(200, 500, true), 120);
 }
 
 TEST(scan_window_stays_legal_at_the_extremes) {
   CHECK_EQ(core::effectiveScanWindowMs(50, 10, true), 10);   // 60% of 50 is 30, 10 is under it
   CHECK_EQ(core::effectiveScanWindowMs(10, 10, true), 10);   // never throttled below the minimum
-  CHECK_EQ(core::effectiveScanWindowMs(200, 0, false), 10);
+  CHECK_EQ(core::effectiveScanWindowMs(200, 0, true), 10);   // a zero window while sharing floors out
+  CHECK_EQ(core::effectiveScanWindowMs(0, 0, false), 10);    // a zero interval floors out too
 }
 
 // --- the connect budget -----------------------------------------------------

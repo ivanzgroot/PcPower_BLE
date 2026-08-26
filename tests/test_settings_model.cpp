@@ -11,8 +11,8 @@ TEST(settings_defaults_match_the_spec) {
   CHECK(s.flag(core::S_LED_ACTIVE_LOW));
   CHECK_EQ(s.num(core::S_PULSE_MS), 300);
   CHECK_EQ(s.num(core::S_LONG_PRESS_MS), 6000);
-  CHECK_EQ(s.num(core::S_SCAN_INTVL_MS), 200);
-  CHECK_EQ(s.num(core::S_SCAN_WINDOW_MS), 60);
+  CHECK_EQ(s.num(core::S_SCAN_INTVL_MS), 30);
+  CHECK_EQ(s.num(core::S_SCAN_WINDOW_MS), 30);
   CHECK_EQ(s.num(core::S_COOLDOWN_MS), 10000);
   CHECK_EQ(s.num(core::S_POSTOFF_MS), 30000);
   CHECK(!s.flag(core::S_REQUIRE_ABSENCE));   // optional, off by default

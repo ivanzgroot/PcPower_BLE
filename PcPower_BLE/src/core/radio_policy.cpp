@@ -41,16 +41,22 @@ RadioPlan planFor(const RadioInputs& in, const RadioConfig& cfg) {
 
 uint16_t effectiveScanWindowMs(int32_t interval_ms, int32_t window_ms, bool sharing_antenna) {
   static constexpr int32_t kMinWindowMs = 10;
-  int32_t window = window_ms;
-  if (window > interval_ms) window = interval_ms;  // hardware invariant
 
-  if (sharing_antenna) {
-    // Both radios on one antenna: above roughly 60% duty the web interface stalls.
-    int32_t ceiling = interval_ms * 60 / 100;
-    if (ceiling < kMinWindowMs) ceiling = kMinWindowMs;
-    if (window > ceiling) window = ceiling;
+  // Not sharing means BLE has the whole antenna and there is nothing to leave room for, so the
+  // configured window does not matter here: scan continuously, at 100% duty, the most aggressive
+  // a scan can be. This is unconditional, not a cap - a small configured window is overridden
+  // rather than merely left alone, because there is no reason to leave a gap for nobody.
+  if (!sharing_antenna) {
+    return (uint16_t)(interval_ms >= kMinWindowMs ? interval_ms : kMinWindowMs);
   }
 
+  // Sharing: both radios are on one antenna (a learn started while WiFi is up), and above
+  // roughly 60% duty the web interface stalls.
+  int32_t window = window_ms;
+  if (window > interval_ms) window = interval_ms;
+  int32_t ceiling = interval_ms * 60 / 100;
+  if (ceiling < kMinWindowMs) ceiling = kMinWindowMs;
+  if (window > ceiling) window = ceiling;
   if (window < kMinWindowMs) window = kMinWindowMs;
   return (uint16_t)window;
 }

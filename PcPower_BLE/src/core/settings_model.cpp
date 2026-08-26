@@ -35,10 +35,13 @@ const SettingDef kSettingDefs[S_NUM_SETTINGS] = {
     {"long_press_ms", I, 1000, 15000, 6000, nullptr, "Long press length", "ms", nullptr, "Power",
      "Used by the force-off button. Most PCs cut power after 4-6 seconds."},
 
-    {"scan_intvl_ms", I, 50, 1000, 200, nullptr, "Scan interval", "ms", nullptr, "Scanning",
-     "How often the radio starts a scan window."},
-    {"scan_window_ms", I, 10, 1000, 60, nullptr, "Scan window", "ms", nullptr, "Scanning",
-     "How long it listens each interval. 60 of 200 ms is a 30% duty cycle."},
+    {"scan_intvl_ms", I, 20, 1000, 30, nullptr, "Scan interval", "ms", nullptr, "Scanning",
+     "How often the radio restarts its scan window. Smaller cycles through the three "
+     "advertising channels faster - lower latency, at effectively no extra cost."},
+    {"scan_window_ms", I, 10, 1000, 30, nullptr, "Scan window (while sharing WiFi)", "ms",
+     nullptr, "Scanning",
+     "Only used while WiFi is also up, e.g. during a learn. Whenever BLE has the whole antenna "
+     "to itself it always scans at 100% duty, ignoring this value entirely."},
     {"scan_active", B, 0, 1, 1, nullptr, "Active scanning", "", nullptr, "Scanning",
      "Requests scan responses, which carry device names. Costs a little more airtime."},
     {"pause_when_on", B, 0, 1, 1, nullptr, "Pause scan while PC is on", "", nullptr, "Scanning",
