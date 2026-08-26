@@ -19,8 +19,10 @@ void resume();
 void shutdown();
 bool enabled();
 
-// WiFi power save. Worth having when BLE is sharing the antenna, actively harmful during a
-// sustained transfer: the modem naps between beacons and a large upload stalls and drops.
+// WiFi power save. Left on by default: some access points (UniFi's among them) mishandle a
+// station that asks for WIFI_PS_NONE and cycle the association in a connect/disconnect loop
+// instead of granting it. Switched off only for the duration of an OTA upload, where a napping
+// modem stalls a sustained transfer until the server gives up on it.
 void setPowerSave(bool enabled);
 
 Mode mode();

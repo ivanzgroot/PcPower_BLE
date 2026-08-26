@@ -164,11 +164,13 @@ When WiFi comes up it gets five attempts spread over sixty seconds to join the s
 they all fail it raises the hotspot and keeps trying the real network every five minutes in the
 background. All three numbers are configurable under Settings → Radio.
 
-Neither radio makes room for the other when the other is not there. WiFi power save is off while
-WiFi owns the antenna, and the scan duty cycle is only eased back toward 60% while both radios are
-genuinely running at once, which in exclusive mode happens only during a learn started from the
-web interface. Your configured scan window is never written over; the concession is worked out
-when it is used.
+Neither radio makes room for the other when the other is not there. The scan duty cycle is only
+eased back toward 60% while both radios are genuinely running at once, which in exclusive mode
+happens only during a learn started from the web interface; your configured scan window is never
+written over, and the concession is worked out when it is used. WiFi power save stays on
+regardless of radio mode - some access points, UniFi's among them, mishandle a station that
+requests none and cycle the connection in a loop instead - and is switched off only for the
+duration of a firmware upload, where a napping modem stalls a sustained transfer.
 
 Switching only happens after the PC state has held for five seconds, so a flickering power LED
 cannot make the board tear WiFi up and down repeatedly, and an update in progress is never
