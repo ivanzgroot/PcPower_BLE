@@ -178,7 +178,7 @@ static void handleStatus() {
   core::jsonAppend(s_buf, sizeof s_buf, &pos,
                    "\"ota\":{\"running\":%s,\"percent\":%u,\"capable\":%s,\"partition\":\"%s\","
                    "\"slot_bytes\":%u},\"uptime_ms\":%u,\"heap\":%u,"
-                   "\"version\":\"%s\",\"devices\":",
+                   "\"version\":\"%s\",",
                    s_ota_running ? "true" : "false", (unsigned)s_ota_percent,
                    otaTargetPartition() ? "true" : "false",
                    esp_ota_get_running_partition() ? esp_ota_get_running_partition()->label : "?",
