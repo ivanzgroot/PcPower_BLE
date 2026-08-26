@@ -281,7 +281,23 @@ the browser and need different answers:
 Tell these apart with the serial console, which works over USB regardless of what WiFi is doing:
 run `status` and read the reported `wifi` line and its RSSI. A number in the `-60` to `-75` range
 that comes and goes is the first case. Anything worse than roughly `-85`, or no association at
-all, is the second - that is an RF problem, not a bug to file.
+all, is the second - that is an RF problem, not a bug to file. If your access point reports a
+retransmit or TX-retry percentage for the board (UniFi and most enterprise-grade controllers do),
+that is an even better signal than RSSI: anything above roughly 15-20% means real frame loss is
+happening, regardless of what the raw signal strength number says.
+
+**Firmware updates fail partway through with what looks like a dropped connection, on a link
+that otherwise mostly works.** Writing a firmware image does a blocking flash-erase every 64KB
+that can take close to a second, during which nothing is read from the upload's TCP connection -
+harmless on a solid link, but on a lossy one (see the TX-retry check above) it is often enough to
+tip an already-marginal transfer into a timeout. This is a real limitation of updating over WiFi
+on a lossy link, not a bug with an available fix - flash over USB instead
+(`tools/flash.sh` / `tools/flash.ps1`) until the link improves; it does not depend on WiFi at
+all. If the retry percentage is high, that is also the number worth improving directly: try a
+different channel on the access point first, since interference causes retries just as often as
+distance does, and if it is placement, a few centimetres of case metal against the board's
+antenna trace matters more than distance to the glass - orient the board so the antenna faces the
+panel rather than the case interior.
 
 **A firmware update fails with "Partition Could Not be Found".** The board is running a partition
 table with only one app slot, so there is nowhere to write a new image. This happens if it was
